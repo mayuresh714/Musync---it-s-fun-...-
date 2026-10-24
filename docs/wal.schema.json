@@ -1,0 +1,773 @@
+{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "https://musync.app/schema/wal-1.json",
+ "title": "WAL — Wave Augmented Language v1",
+ "type": "object",
+ "required": [
+  "wal",
+  "meta",
+  "timing",
+  "sections"
+ ],
+ "properties": {
+  "wal": {
+   "const": "1.0"
+  },
+  "meta": {
+   "type": "object",
+   "required": [
+    "title",
+    "duration"
+   ],
+   "properties": {
+    "title": {
+     "type": "string"
+    },
+    "artist": {
+     "type": "string"
+    },
+    "duration": {
+     "type": "number",
+     "minimum": 0
+    },
+    "bpm": {
+     "type": "number",
+     "minimum": 20,
+     "maximum": 300
+    },
+    "meter": {
+     "type": "integer",
+     "minimum": 2,
+     "maximum": 12
+    },
+    "key": {
+     "type": "string"
+    },
+    "styles": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "edm",
+       "bollywood",
+       "dandiya",
+       "concert",
+       "devotional",
+       "wedding",
+       "romantic"
+      ]
+     }
+    },
+    "mood": {
+     "type": "string"
+    },
+    "language": {
+     "type": "string"
+    },
+    "audio": {
+     "type": "object",
+     "properties": {
+      "file": {
+       "type": "string"
+      },
+      "sha256": {
+       "type": "string"
+      },
+      "duration": {
+       "type": "number",
+       "minimum": 0
+      }
+     }
+    },
+    "generator": {
+     "type": "string"
+    },
+    "created": {
+     "type": "string"
+    },
+    "notes": {
+     "type": "string"
+    }
+   }
+  },
+  "timing": {
+   "type": "object",
+   "required": [
+    "beats"
+   ],
+   "properties": {
+    "beats": {
+     "type": "array",
+     "items": {
+      "type": "number",
+      "minimum": 0
+     }
+    },
+    "downbeats": {
+     "type": "array",
+     "items": {
+      "type": "number",
+      "minimum": 0
+     }
+    }
+   }
+  },
+  "palettes": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "array",
+    "minItems": 1,
+    "items": {
+     "type": "string",
+     "pattern": "^#[0-9a-fA-F]{6}$"
+    }
+   }
+  },
+  "sections": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "required": [
+     "id",
+     "start",
+     "end",
+     "kind",
+     "energy"
+    ],
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "start": {
+      "type": "number",
+      "minimum": 0
+     },
+     "end": {
+      "type": "number",
+      "minimum": 0
+     },
+     "kind": {
+      "enum": [
+       "intro",
+       "aalap",
+       "verse",
+       "prechorus",
+       "chorus",
+       "build",
+       "drop",
+       "break",
+       "bridge",
+       "solo",
+       "interlude",
+       "outro"
+      ]
+     },
+     "energy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     },
+     "group": {
+      "type": "string"
+     },
+     "label": {
+      "type": "string",
+      "description": "Human label, e.g. \"Mukhda\", \"Antara 1\", \"Drop 2\"."
+     },
+     "mood": {
+      "type": "string"
+     },
+     "palette": {
+      "type": "string"
+     },
+     "lyric": {
+      "type": "string",
+      "description": "Key lyric line or meaning, for the creative layer."
+     }
+    }
+   }
+  },
+  "cues": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "t",
+     "layer"
+    ],
+    "properties": {
+     "t": {
+      "type": "number",
+      "minimum": 0
+     },
+     "until": {
+      "type": "number",
+      "minimum": 0
+     },
+     "layer": {
+      "enum": [
+       "beam",
+       "spot",
+       "wash",
+       "pixel",
+       "strobe",
+       "laser",
+       "blinder",
+       "all"
+      ]
+     },
+     "move": {
+      "type": "object",
+      "required": [
+       "look"
+      ],
+      "properties": {
+       "look": {
+        "enum": [
+         "still",
+         "fan",
+         "fan_open",
+         "fan_close",
+         "sweep",
+         "wave",
+         "circle",
+         "crossfire",
+         "ballyhoo",
+         "tunnel"
+        ]
+       },
+       "intensity": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "speed": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "description": "Beats per cycle (bigger = slower)."
+       },
+       "spread": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "size": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "tilt": {
+        "type": "number",
+        "minimum": -1,
+        "maximum": 1
+       },
+       "on": {
+        "enum": [
+         "beat",
+         "half",
+         "bar",
+         "phrase",
+         "offbeat",
+         "8th",
+         "16th",
+         "low",
+         "mid",
+         "high"
+        ]
+       },
+       "every": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Act on every Nth trigger."
+       },
+       "decay": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Seconds."
+       },
+       "width": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "direction": {
+        "enum": [
+         "forward",
+         "reverse",
+         "bounce",
+         "out",
+         "in"
+        ]
+       },
+       "split": {
+        "enum": [
+         "lr",
+         "oddeven"
+        ]
+       },
+       "density": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "rate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 30,
+        "description": "Flashes per second."
+       },
+       "ramp": {
+        "type": "boolean"
+       },
+       "env": {
+        "enum": [
+         "energy",
+         "low",
+         "mid",
+         "high"
+        ]
+       },
+       "palette": {
+        "type": "string"
+       },
+       "index": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "hex": {
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$"
+       },
+       "pose": {
+        "enum": [
+         "up",
+         "out",
+         "center",
+         "cross",
+         "audience",
+         "down",
+         "performer"
+        ]
+       }
+      },
+      "additionalProperties": false
+     },
+     "dim": {
+      "type": "object",
+      "required": [
+       "look"
+      ],
+      "properties": {
+       "look": {
+        "enum": [
+         "on",
+         "off",
+         "follow",
+         "pulse",
+         "chase",
+         "alternate",
+         "breathe",
+         "sparkle",
+         "strobe",
+         "swell",
+         "fade",
+         "dandiya_tap",
+         "garba_circle"
+        ]
+       },
+       "intensity": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "speed": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "description": "Beats per cycle (bigger = slower)."
+       },
+       "spread": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "size": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "tilt": {
+        "type": "number",
+        "minimum": -1,
+        "maximum": 1
+       },
+       "on": {
+        "enum": [
+         "beat",
+         "half",
+         "bar",
+         "phrase",
+         "offbeat",
+         "8th",
+         "16th",
+         "low",
+         "mid",
+         "high"
+        ]
+       },
+       "every": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Act on every Nth trigger."
+       },
+       "decay": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Seconds."
+       },
+       "width": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "direction": {
+        "enum": [
+         "forward",
+         "reverse",
+         "bounce",
+         "out",
+         "in"
+        ]
+       },
+       "split": {
+        "enum": [
+         "lr",
+         "oddeven"
+        ]
+       },
+       "density": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "rate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 30,
+        "description": "Flashes per second."
+       },
+       "ramp": {
+        "type": "boolean"
+       },
+       "env": {
+        "enum": [
+         "energy",
+         "low",
+         "mid",
+         "high"
+        ]
+       },
+       "palette": {
+        "type": "string"
+       },
+       "index": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "hex": {
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$"
+       },
+       "pose": {
+        "enum": [
+         "up",
+         "out",
+         "center",
+         "cross",
+         "audience",
+         "down",
+         "performer"
+        ]
+       }
+      },
+      "additionalProperties": false
+     },
+     "color": {
+      "type": "object",
+      "required": [
+       "look"
+      ],
+      "properties": {
+       "look": {
+        "enum": [
+         "static",
+         "cycle",
+         "split",
+         "gradient",
+         "rainbow"
+        ]
+       },
+       "intensity": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "speed": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "description": "Beats per cycle (bigger = slower)."
+       },
+       "spread": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "size": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "tilt": {
+        "type": "number",
+        "minimum": -1,
+        "maximum": 1
+       },
+       "on": {
+        "enum": [
+         "beat",
+         "half",
+         "bar",
+         "phrase",
+         "offbeat",
+         "8th",
+         "16th",
+         "low",
+         "mid",
+         "high"
+        ]
+       },
+       "every": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Act on every Nth trigger."
+       },
+       "decay": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Seconds."
+       },
+       "width": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "direction": {
+        "enum": [
+         "forward",
+         "reverse",
+         "bounce",
+         "out",
+         "in"
+        ]
+       },
+       "split": {
+        "enum": [
+         "lr",
+         "oddeven"
+        ]
+       },
+       "density": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "rate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 30,
+        "description": "Flashes per second."
+       },
+       "ramp": {
+        "type": "boolean"
+       },
+       "env": {
+        "enum": [
+         "energy",
+         "low",
+         "mid",
+         "high"
+        ]
+       },
+       "palette": {
+        "type": "string"
+       },
+       "index": {
+        "type": "integer",
+        "minimum": 0
+       },
+       "hex": {
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$"
+       },
+       "pose": {
+        "enum": [
+         "up",
+         "out",
+         "center",
+         "cross",
+         "audience",
+         "down",
+         "performer"
+        ]
+       }
+      },
+      "additionalProperties": false
+     },
+     "fx": {
+      "enum": [
+       "flash",
+       "blackout",
+       "burst",
+       "snap"
+      ]
+     },
+     "dur": {
+      "type": "number",
+      "minimum": 0
+     },
+     "note": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  "accents": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "t",
+     "type"
+    ],
+    "properties": {
+     "t": {
+      "type": "number",
+      "minimum": 0
+     },
+     "type": {
+      "enum": [
+       "drop",
+       "hit",
+       "silence",
+       "riser",
+       "cue"
+      ]
+     },
+     "strength": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     },
+     "dur": {
+      "type": "number",
+      "minimum": 0
+     },
+     "fx": {
+      "enum": [
+       "flash",
+       "blackout",
+       "burst",
+       "snap",
+       "none"
+      ]
+     },
+     "note": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "onsets": {
+   "type": "object",
+   "properties": {
+    "low": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+       "type": "number"
+      }
+     }
+    },
+    "mid": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+       "type": "number"
+      }
+     }
+    },
+    "high": {
+     "type": "array",
+     "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+       "type": "number"
+      }
+     }
+    }
+   }
+  },
+  "envelopes": {
+   "type": "object",
+   "required": [
+    "rate"
+   ],
+   "properties": {
+    "rate": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    },
+    "energy": {
+     "type": "array",
+     "items": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+     }
+    },
+    "low": {
+     "type": "array",
+     "items": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+     }
+    },
+    "mid": {
+     "type": "array",
+     "items": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+     }
+    },
+    "high": {
+     "type": "array",
+     "items": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+     }
+    }
+   }
+  }
+ }
+}

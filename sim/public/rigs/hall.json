@@ -1,0 +1,216 @@
+{
+ "name": "Banquet hall",
+ "venue": "hall",
+ "fixtures": [
+  {
+   "id": "FB1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -4.5,
+    4.2,
+    -3.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -1.5,
+    4.2,
+    -3.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB3",
+   "model": "claypaky-sharpy",
+   "pos": [
+    1.5,
+    4.2,
+    -3.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB4",
+   "model": "claypaky-sharpy",
+   "pos": [
+    4.5,
+    4.2,
+    -3.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "SW1",
+   "model": "led-par-54x3",
+   "pos": [
+    -4.5,
+    3.9,
+    -7.6
+   ],
+   "mount": "hung",
+   "aim": [
+    -3.6,
+    1.6,
+    -5.5
+   ]
+  },
+  {
+   "id": "SW2",
+   "model": "led-par-54x3",
+   "pos": [
+    -1.5,
+    3.9,
+    -7.6
+   ],
+   "mount": "hung",
+   "aim": [
+    -1.2000000000000002,
+    1.6,
+    -5.5
+   ]
+  },
+  {
+   "id": "SW3",
+   "model": "led-par-54x3",
+   "pos": [
+    1.5,
+    3.9,
+    -7.6
+   ],
+   "mount": "hung",
+   "aim": [
+    1.2000000000000002,
+    1.6,
+    -5.5
+   ]
+  },
+  {
+   "id": "SW4",
+   "model": "led-par-54x3",
+   "pos": [
+    4.5,
+    3.9,
+    -7.6
+   ],
+   "mount": "hung",
+   "aim": [
+    3.6,
+    1.6,
+    -5.5
+   ]
+  },
+  {
+   "id": "DW1",
+   "model": "led-par-54x3",
+   "pos": [
+    -4,
+    4.3,
+    3
+   ],
+   "mount": "hung",
+   "aim": [
+    -4,
+    0,
+    6
+   ]
+  },
+  {
+   "id": "DW2",
+   "model": "led-par-54x3",
+   "pos": [
+    0,
+    4.3,
+    3
+   ],
+   "mount": "hung",
+   "aim": [
+    0,
+    0,
+    6
+   ]
+  },
+  {
+   "id": "DW3",
+   "model": "led-par-54x3",
+   "pos": [
+    4,
+    4.3,
+    3
+   ],
+   "mount": "hung",
+   "aim": [
+    4,
+    0,
+    6
+   ]
+  },
+  {
+   "id": "DX1",
+   "model": "led-par-54x3",
+   "pos": [
+    -4,
+    4.3,
+    9
+   ],
+   "mount": "hung",
+   "aim": [
+    -4,
+    0,
+    8
+   ]
+  },
+  {
+   "id": "DX2",
+   "model": "led-par-54x3",
+   "pos": [
+    0,
+    4.3,
+    9
+   ],
+   "mount": "hung",
+   "aim": [
+    0,
+    0,
+    8
+   ]
+  },
+  {
+   "id": "DX3",
+   "model": "led-par-54x3",
+   "pos": [
+    4,
+    4.3,
+    9
+   ],
+   "mount": "hung",
+   "aim": [
+    4,
+    0,
+    8
+   ]
+  },
+  {
+   "id": "PB1",
+   "model": "pixel-bar-16",
+   "pos": [
+    -3,
+    1.1,
+    -4.3
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PB2",
+   "model": "pixel-bar-16",
+   "pos": [
+    3,
+    1.1,
+    -4.3
+   ],
+   "mount": "floor"
+  }
+ ]
+}

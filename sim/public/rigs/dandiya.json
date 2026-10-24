@@ -1,0 +1,342 @@
+{
+ "name": "Dandiya / Garba ground",
+ "venue": "garba",
+ "surround": true,
+ "focus": [
+  0,
+  0,
+  16
+ ],
+ "fixtures": [
+  {
+   "id": "T1B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -14,
+    9,
+    4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "T2B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    14,
+    9,
+    4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "T3B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -14,
+    9,
+    28
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "T4B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    14,
+    9,
+    28
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "PB1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    0,
+    6.55,
+    29.35
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "PB2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    13.35,
+    6.55,
+    16
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "PB3",
+   "model": "claypaky-sharpy",
+   "pos": [
+    0,
+    6.55,
+    2.65
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "PB4",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -13.35,
+    6.55,
+    16
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "SB1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -4,
+    1.2,
+    -1.5
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "SB2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    4,
+    1.2,
+    -1.5
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "SP1",
+   "model": "led-par-54x3",
+   "pos": [
+    -5,
+    6,
+    -0.5
+   ],
+   "mount": "hung",
+   "aim": [
+    -4,
+    1.2,
+    -3.5
+   ]
+  },
+  {
+   "id": "SP2",
+   "model": "led-par-54x3",
+   "pos": [
+    5,
+    6,
+    -0.5
+   ],
+   "mount": "hung",
+   "aim": [
+    4,
+    1.2,
+    -3.5
+   ]
+  },
+  {
+   "id": "RP1",
+   "model": "led-par-54x3",
+   "pos": [
+    6.5,
+    6,
+    27.26
+   ],
+   "mount": "hung",
+   "aim": [
+    3,
+    0,
+    21.2
+   ]
+  },
+  {
+   "id": "RP2",
+   "model": "led-par-54x3",
+   "pos": [
+    11.26,
+    6,
+    22.5
+   ],
+   "mount": "hung",
+   "aim": [
+    5.2,
+    0,
+    19
+   ]
+  },
+  {
+   "id": "RP3",
+   "model": "led-par-54x3",
+   "pos": [
+    11.26,
+    6,
+    9.5
+   ],
+   "mount": "hung",
+   "aim": [
+    5.2,
+    0,
+    13
+   ]
+  },
+  {
+   "id": "RP4",
+   "model": "led-par-54x3",
+   "pos": [
+    6.5,
+    6,
+    4.74
+   ],
+   "mount": "hung",
+   "aim": [
+    3,
+    0,
+    10.8
+   ]
+  },
+  {
+   "id": "RP5",
+   "model": "led-par-54x3",
+   "pos": [
+    -6.5,
+    6,
+    4.74
+   ],
+   "mount": "hung",
+   "aim": [
+    -3,
+    0,
+    10.8
+   ]
+  },
+  {
+   "id": "RP6",
+   "model": "led-par-54x3",
+   "pos": [
+    -11.26,
+    6,
+    9.5
+   ],
+   "mount": "hung",
+   "aim": [
+    -5.2,
+    0,
+    13
+   ]
+  },
+  {
+   "id": "RP7",
+   "model": "led-par-54x3",
+   "pos": [
+    -11.26,
+    6,
+    22.5
+   ],
+   "mount": "hung",
+   "aim": [
+    -5.2,
+    0,
+    19
+   ]
+  },
+  {
+   "id": "RP8",
+   "model": "led-par-54x3",
+   "pos": [
+    -6.5,
+    6,
+    27.26
+   ],
+   "mount": "hung",
+   "aim": [
+    -3,
+    0,
+    21.2
+   ]
+  },
+  {
+   "id": "GT1",
+   "model": "led-tube-2m",
+   "pos": [
+    1.56,
+    1.4,
+    17.56
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "GT2",
+   "model": "led-tube-2m",
+   "pos": [
+    1.56,
+    1.4,
+    14.44
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "GT3",
+   "model": "led-tube-2m",
+   "pos": [
+    -1.56,
+    1.4,
+    14.44
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "GT4",
+   "model": "led-tube-2m",
+   "pos": [
+    -1.56,
+    1.4,
+    17.56
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "MXL",
+   "model": "led-matrix-panel",
+   "pos": [
+    -10.6,
+    3.5999999999999996,
+    -1.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "MXR",
+   "model": "led-matrix-panel",
+   "pos": [
+    10.6,
+    3.5999999999999996,
+    -1.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "SS1",
+   "model": "sunstrip-10",
+   "pos": [
+    -4.5,
+    5.6,
+    -0.3
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "SS2",
+   "model": "sunstrip-10",
+   "pos": [
+    4.5,
+    5.6,
+    -0.3
+   ],
+   "mount": "hung"
+  }
+ ]
+}

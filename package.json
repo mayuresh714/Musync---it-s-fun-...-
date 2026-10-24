@@ -1,0 +1,25 @@
+{
+  "name": "musync-wal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Musync: audio -> WAL (Wave Augmented Language) -> any light rig. Pure JS analyzer, decoder and Three.js simulator.",
+  "type": "module",
+  "bin": {
+    "wal": "bin/wal.mjs"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:ui": "vite --config sim/vite.config.js",
+    "server": "node server/index.mjs",
+    "build": "vite build --config sim/vite.config.js",
+    "wal": "node bin/wal.mjs",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7"
+  }
+}

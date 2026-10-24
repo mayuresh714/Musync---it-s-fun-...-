@@ -1,0 +1,33 @@
+# dependencies and build output
+node_modules/
+dist/
+
+# local working data: AI jobs, uploads, chat sessions, screenshots (can hold user photos and songs)
+.musync/
+
+# secrets, in case anyone adds some
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+.vscode/
+*.log
+
+# audio: copyrighted or large. WAL files are kept; `npm run wal demo` regenerates the demo tracks
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.ogg
+# copyrighted song material (lyrics, analysis of a commercial track)
+songs/rang-de-lal/
+sim/public/songs/rang-de-lal*
+
+# generated library index (lists whatever songs you added locally); `npm run wal demo` creates it
+sim/public/songs/index.json
+sim/public/songs/*.wal.v1.json

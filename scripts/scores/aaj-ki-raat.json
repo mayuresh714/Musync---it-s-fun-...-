@@ -1,0 +1,19 @@
+{
+  "reading": "Lyric reading (paraphrased): she asks her beloved to spare her arms a moment (embrace), to savour tonight's beauty with his eyes (gaze), not to waste time on idle talk (urgency), then offers her life as a sacrifice and says ruin is certain, he is fire and she is water (fire / duel). The second verse asks him to respect the delicacy of the moment, says a beauty's consent can't be bought (pride) and not to be proud on hollow promises (hollow). The drops are the fire-and-water duel; the last tagline is where the two meet.",
+  "images": [
+    [6.8, "longing"], [10.9, "longing"], [14.9, "longing"], [17.0, "embrace"], [20.9, "embrace"],
+    [22.9, "gaze"], [27.0, "gaze"], [29.1, "gaze"], [33.4, "gaze"], [35.6, "gaze"],
+    [39.5, "urgency"], [43.5, "urgency"], [47.5, "urgency"], [51.4, "urgency"], [55.4, "hush"],
+    [61.6, "gaze"], [65.5, "gaze"],
+    [80.2, "fire"], [84.4, "duel"], [88.5, "rhythm"], [92.6, "rhythm"], [96.8, "fire"], [100.9, "duel"], [105.1, "rhythm"],
+    [113.4, "pride"],
+    [121.6, "fire"], [125.8, "duel"], [129.9, "pride"], [134.0, "pride"], [138.2, "bloom"], [142.3, "duel"],
+    [148.5, "rhythm"], [152.6, "rhythm"], [156.8, "bloom"], [160.9, "rhythm"],
+    [165.1, "pride"], [169.3, "hollow"],
+    [175.4, "fire"], [179.6, "duel"], [183.7, "gaze"], [187.8, "gaze"], [192.0, "bloom"], [196.1, "duel"],
+    [202.3, "flirt"], [206.4, "flirt"], [210.6, "hollow"], [214.7, "longing"],
+    [220.9, "fire"], [225.1, "duel"], [229.2, "bloom"], [233.3, "bloom"], [237.5, "fire"], [241.6, "duel"], [245.8, "bloom"], [249.9, "duel"],
+    [256.1, "fire"], [260.2, "duel"], [264.4, "bloom"], [268.5, "meet"],
+    [272.6, "longing"]
+  ]
+}

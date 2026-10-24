@@ -1,0 +1,432 @@
+{
+ "name": "Club",
+ "venue": "club",
+ "surround": true,
+ "focus": [
+  0,
+  0,
+  3.2
+ ],
+ "fixtures": [
+  {
+   "id": "RB1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    0,
+    5.3,
+    6.8
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "RB2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    3.12,
+    5.3,
+    5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "RB3",
+   "model": "claypaky-sharpy",
+   "pos": [
+    3.12,
+    5.3,
+    1.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "RB4",
+   "model": "claypaky-sharpy",
+   "pos": [
+    0,
+    5.3,
+    -0.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "RB5",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -3.12,
+    5.3,
+    1.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "RB6",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -3.12,
+    5.3,
+    5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB1",
+   "model": "claypaky-mythos2",
+   "pos": [
+    -3.5,
+    5.3,
+    -1.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB2",
+   "model": "claypaky-mythos2",
+   "pos": [
+    -1.17,
+    5.3,
+    -1.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB3",
+   "model": "claypaky-mythos2",
+   "pos": [
+    1.17,
+    5.3,
+    -1.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "FB4",
+   "model": "claypaky-mythos2",
+   "pos": [
+    3.5,
+    5.3,
+    -1.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "BB1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -3,
+    5.3,
+    7.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "BB2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    3,
+    5.3,
+    7.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB1",
+   "model": "led-tube-2m",
+   "pos": [
+    0,
+    4.3,
+    8.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB2",
+   "model": "led-tube-2m",
+   "pos": [
+    3.68,
+    4.3,
+    6.88
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB3",
+   "model": "led-tube-2m",
+   "pos": [
+    5.2,
+    4.3,
+    3.2
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB4",
+   "model": "led-tube-2m",
+   "pos": [
+    3.68,
+    4.3,
+    -0.48
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB5",
+   "model": "led-tube-2m",
+   "pos": [
+    0,
+    4.3,
+    -2
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB6",
+   "model": "led-tube-2m",
+   "pos": [
+    -3.68,
+    4.3,
+    -0.48
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB7",
+   "model": "led-tube-2m",
+   "pos": [
+    -5.2,
+    4.3,
+    3.2
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB8",
+   "model": "led-tube-2m",
+   "pos": [
+    -3.68,
+    4.3,
+    6.88
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "MXL",
+   "model": "led-matrix-wall",
+   "pos": [
+    -3.1,
+    3,
+    -5.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "MXR",
+   "model": "led-matrix-wall",
+   "pos": [
+    3.1,
+    3,
+    -5.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX1",
+   "model": "pixel-bar-16",
+   "pos": [
+    -1.6,
+    0.8,
+    -2.3
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX2",
+   "model": "pixel-bar-16",
+   "pos": [
+    -0.53,
+    0.8,
+    -2.3
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX3",
+   "model": "pixel-bar-16",
+   "pos": [
+    0.53,
+    0.8,
+    -2.3
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX4",
+   "model": "pixel-bar-16",
+   "pos": [
+    1.6,
+    0.8,
+    -2.3
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "HS1",
+   "model": "hybrid-strobe-bar",
+   "pos": [
+    -4,
+    5,
+    0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "HS2",
+   "model": "hybrid-strobe-bar",
+   "pos": [
+    4,
+    5,
+    0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P1",
+   "model": "led-par-54x3",
+   "pos": [
+    -8,
+    0.35,
+    11
+   ],
+   "mount": "floor",
+   "aim": [
+    -8,
+    5,
+    12.2
+   ]
+  },
+  {
+   "id": "P2",
+   "model": "led-par-54x3",
+   "pos": [
+    -4.8,
+    0.35,
+    11
+   ],
+   "mount": "floor",
+   "aim": [
+    -4.8,
+    5,
+    12.2
+   ]
+  },
+  {
+   "id": "P3",
+   "model": "led-par-54x3",
+   "pos": [
+    -1.6,
+    0.35,
+    11
+   ],
+   "mount": "floor",
+   "aim": [
+    -1.6,
+    5,
+    12.2
+   ]
+  },
+  {
+   "id": "P4",
+   "model": "led-par-54x3",
+   "pos": [
+    1.6,
+    0.35,
+    11
+   ],
+   "mount": "floor",
+   "aim": [
+    1.6,
+    5,
+    12.2
+   ]
+  },
+  {
+   "id": "P5",
+   "model": "led-par-54x3",
+   "pos": [
+    4.8,
+    0.35,
+    11
+   ],
+   "mount": "floor",
+   "aim": [
+    4.8,
+    5,
+    12.2
+   ]
+  },
+  {
+   "id": "P6",
+   "model": "led-par-54x3",
+   "pos": [
+    8,
+    0.35,
+    11
+   ],
+   "mount": "floor",
+   "aim": [
+    8,
+    5,
+    12.2
+   ]
+  },
+  {
+   "id": "BL1",
+   "model": "blinder-4lite",
+   "pos": [
+    -2.5,
+    3,
+    -2.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "BL2",
+   "model": "blinder-4lite",
+   "pos": [
+    2.5,
+    3,
+    -2.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "L1",
+   "model": "laser-rgb-3w",
+   "pos": [
+    -8.6,
+    5.2,
+    0.5
+   ],
+   "mount": "hung",
+   "aim": [
+    0,
+    4.2,
+    3.2
+   ]
+  },
+  {
+   "id": "L2",
+   "model": "laser-rgb-3w",
+   "pos": [
+    8.6,
+    5.2,
+    0.5
+   ],
+   "mount": "hung",
+   "aim": [
+    0,
+    4.2,
+    3.2
+   ]
+  }
+ ]
+}

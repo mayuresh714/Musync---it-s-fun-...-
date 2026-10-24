@@ -1,0 +1,16 @@
+{
+ "name": "Single Sharpy",
+ "venue": "stage",
+ "fixtures": [
+  {
+   "id": "B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    0,
+    1.2,
+    -3
+   ],
+   "mount": "floor"
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+{
+ "name": "4 × Sharpy on the deck",
+ "venue": "stage",
+ "fixtures": [
+  {
+   "id": "B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -4.5,
+    1.2,
+    -1.2
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "B2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -1.5,
+    1.2,
+    -1.2
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "B3",
+   "model": "claypaky-sharpy",
+   "pos": [
+    1.5,
+    1.2,
+    -1.2
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "B4",
+   "model": "claypaky-sharpy",
+   "pos": [
+    4.5,
+    1.2,
+    -1.2
+   ],
+   "mount": "floor"
+  }
+ ]
+}

@@ -1,0 +1,426 @@
+{
+ "name": "Concert stage",
+ "venue": "stage",
+ "fixtures": [
+  {
+   "id": "B1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -6,
+    8,
+    -4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "B2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -3.6,
+    8,
+    -4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "B3",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -1.2,
+    8,
+    -4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "B4",
+   "model": "claypaky-sharpy",
+   "pos": [
+    1.2,
+    8,
+    -4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "B5",
+   "model": "claypaky-sharpy",
+   "pos": [
+    3.6,
+    8,
+    -4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "B6",
+   "model": "claypaky-sharpy",
+   "pos": [
+    6,
+    8,
+    -4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "BF1",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -5,
+    1.2,
+    -6.5
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "BF2",
+   "model": "claypaky-sharpy",
+   "pos": [
+    -1.67,
+    1.2,
+    -6.5
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "BF3",
+   "model": "claypaky-sharpy",
+   "pos": [
+    1.67,
+    1.2,
+    -6.5
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "BF4",
+   "model": "claypaky-sharpy",
+   "pos": [
+    5,
+    1.2,
+    -6.5
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "MY1",
+   "model": "claypaky-mythos2",
+   "pos": [
+    -8,
+    8,
+    -6.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "MY2",
+   "model": "claypaky-mythos2",
+   "pos": [
+    -2.67,
+    8,
+    -6.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "MY3",
+   "model": "claypaky-mythos2",
+   "pos": [
+    2.67,
+    8,
+    -6.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "MY4",
+   "model": "claypaky-mythos2",
+   "pos": [
+    8,
+    8,
+    -6.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "S1",
+   "model": "robe-megapointe",
+   "pos": [
+    -4.5,
+    8,
+    -2.5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "S2",
+   "model": "robe-megapointe",
+   "pos": [
+    -1.5,
+    8,
+    -2.5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "S3",
+   "model": "robe-megapointe",
+   "pos": [
+    1.5,
+    8,
+    -2.5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "S4",
+   "model": "robe-megapointe",
+   "pos": [
+    4.5,
+    8,
+    -2.5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P1",
+   "model": "led-par-54x3",
+   "pos": [
+    -7,
+    8,
+    -0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P2",
+   "model": "led-par-54x3",
+   "pos": [
+    -4.2,
+    8,
+    -0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P3",
+   "model": "led-par-54x3",
+   "pos": [
+    -1.4,
+    8,
+    -0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P4",
+   "model": "led-par-54x3",
+   "pos": [
+    1.4,
+    8,
+    -0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P5",
+   "model": "led-par-54x3",
+   "pos": [
+    4.2,
+    8,
+    -0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "P6",
+   "model": "led-par-54x3",
+   "pos": [
+    7,
+    8,
+    -0.6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "PX1",
+   "model": "pixel-bar-16",
+   "pos": [
+    -5,
+    1.3,
+    -7.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX2",
+   "model": "pixel-bar-16",
+   "pos": [
+    -1.67,
+    1.3,
+    -7.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX3",
+   "model": "pixel-bar-16",
+   "pos": [
+    1.67,
+    1.3,
+    -7.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "PX4",
+   "model": "pixel-bar-16",
+   "pos": [
+    5,
+    1.3,
+    -7.6
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "TB1",
+   "model": "led-tube-2m",
+   "pos": [
+    -6,
+    6.7,
+    -6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB2",
+   "model": "led-tube-2m",
+   "pos": [
+    -3,
+    6.7,
+    -6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB3",
+   "model": "led-tube-2m",
+   "pos": [
+    0,
+    6.7,
+    -6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB4",
+   "model": "led-tube-2m",
+   "pos": [
+    3,
+    6.7,
+    -6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "TB5",
+   "model": "led-tube-2m",
+   "pos": [
+    6,
+    6.7,
+    -6
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "ST1",
+   "model": "martin-atomic-3000",
+   "pos": [
+    -4,
+    8,
+    -2.5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "ST2",
+   "model": "martin-atomic-3000",
+   "pos": [
+    4,
+    8,
+    -2.5
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "HS1",
+   "model": "hybrid-strobe-bar",
+   "pos": [
+    -6,
+    7.2,
+    -5.2
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "HS2",
+   "model": "hybrid-strobe-bar",
+   "pos": [
+    6,
+    7.2,
+    -5.2
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "BL1",
+   "model": "blinder-4lite",
+   "pos": [
+    -7.5,
+    6,
+    -0.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "BL2",
+   "model": "blinder-4lite",
+   "pos": [
+    7.5,
+    6,
+    -0.4
+   ],
+   "mount": "hung"
+  },
+  {
+   "id": "L1",
+   "model": "laser-rgb-3w",
+   "pos": [
+    -3,
+    1.4,
+    -7.2
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "L2",
+   "model": "laser-rgb-3w",
+   "pos": [
+    3,
+    1.4,
+    -7.2
+   ],
+   "mount": "floor"
+  },
+  {
+   "id": "SC1",
+   "model": "star-cloth",
+   "pos": [
+    0,
+    4.6,
+    -8.2
+   ],
+   "mount": "floor"
+  }
+ ]
+}
