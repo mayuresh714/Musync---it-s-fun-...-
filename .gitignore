@@ -24,6 +24,12 @@ dist/
 *.wav
 *.flac
 *.ogg
+# music videos (copyrighted and large); analysed locally and deleted after use
+*.mp4
+*.mov
+*.m4v
+*.webm
+*.mkv
 # copyrighted song material (lyrics, analysis of a commercial track)
 songs/rang-de-lal/
 sim/public/songs/rang-de-lal*

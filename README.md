@@ -9,6 +9,19 @@ Node and in the browser.
 audio ─▶ analyze (pure JS DSP) ─▶ draft / Claude /wal skill ─▶ song.wal.json ─▶ decoder + rig ─▶ simulator (later: Art-Net / sACN)
 ```
 
+## Live demo
+
+**{{DEMO_URL}}** (works on a phone too): the full simulator with the two copyright-free demo songs, every venue (concert stage, garba ground, club, banquet hall, wedding lawn and a Ganesh procession street), every camera and the Lights panel.
+
+The hosted demo has no server behind it, so **Design with AI** and the AI director are switched off there, and it says so. They need the Musync server, which runs on your own computer and uses your own Claude login (see below). The demo contains no commercial audio, lyrics or video.
+
+## What is in it
+
+- **Director agents.** Audio, lyrics, web research and (optionally) the music video go to Claude, which writes the show: the bible (story, sections, repeating lyric lines), a show designer pass (a slow opening, a 0 to 9 climb that decides which lights may speak, gestures for the dancers' steps) and the cue sheet. A critic checks the result. See [docs/DIRECTOR-ARCHITECTURE.md](docs/DIRECTOR-ARCHITECTURE.md) and [docs/VIDEO-STUDY.md](docs/VIDEO-STUDY.md).
+- **Music video as evidence.** Drop a video (mp4, mov, webm) or paste a link: motion, cuts and step hits are measured with ffmpeg, Claude reads contact sheets, and the dancers' steps come back as the same light each time. Videos and frames are deleted after use.
+- **Design with AI.** A side panel (also full screen or a slim bar) that turns words and venue photos into a rig, as a new setup or as a change to the one on screen. Stop, pause the show, speak instead of typing. Designs are saved in your browser and never overwrite the built-in rigs.
+- **Six venues** with crowds, haze and eleven camera views; one WAL file plays on every rig.
+
 ## Quick start
 
 ```bash
@@ -55,10 +68,12 @@ The analysis runs on their device.
 | [bin/wal.mjs](bin/wal.mjs) | CLI: build, analyze, draft, validate, summary, preview, publish, schema, demo |
 | [sim/](sim/) | Three.js simulator: venues with real structures, crowds, drone/walk cameras, rig builder, haze beams, timeline |
 | [sim/scene/venues.js](sim/scene/venues.js) | concert field, garba ground, club: stages, PA, screens, trusses, surroundings |
+| [sim/scene/venues2.js](sim/scene/venues2.js), [venues3.js](sim/scene/venues3.js) | banquet hall and wedding lawn; the Ganesh procession street (tractors, light trolley, generator, idol trolley, crowd) |
 | [sim/scene/people.js](sim/scene/people.js) | GPU-animated crowd and performers (clap, jump, phones, sticks) that follows the song |
 | [sim/scene/cameras.js](sim/scene/cameras.js) | drone orbit / reveal / fly-over / top-down, crowd, pit, stage POV, walk, Director |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | how it all fits together, every path, and how it compares with a production web app |
 | [docs/REFERENCES.md](docs/REFERENCES.md) | sources for the venues and what is estimated |
+| [server/lib/video.js](server/lib/video.js) | the music video as evidence: motion/cut/step-hit measuring, contact sheets, the "video brief" Claude writes ([study](docs/VIDEO-STUDY.md)) |
 | [docs/WAL.md](docs/WAL.md) | the format spec for anyone writing a decoder |
 | [.claude/skills/wal/](.claude/skills/wal/SKILL.md) | the Claude skill |
 

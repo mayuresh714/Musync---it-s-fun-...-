@@ -50,7 +50,7 @@ The model never gets the last word: every reply is checked and repaired by plain
 | `server/lib/claude.js` | Runs `claude -p` with tools off (or `Read` only for photos) |
 | `server/lib/codegen.js`, `fake-director.js` | Rule-based engine (no AI) and the free test double |
 | `sim/` | The browser app (Vite). `main.js` is the app: state, frame loop, actions, keyboard |
-| `sim/scene/` | `venues.js` (concert field, garba ground, club), `venues2.js` (banquet hall and wedding lawn, added later and kept separate so the originals are untouched), `fixtures3d.js` (beam shader, fixtures), `people.js` (animated crowd), `cameras.js`, `stage.js`, `env.js`, `effects.js`, `screens.js` (LED walls) |
+| `sim/scene/` | `venues.js` (concert field, garba ground, club), `venues2.js` (banquet hall and wedding lawn, added later and kept separate so the originals are untouched), `venues3.js` (street procession: a tractor and light trolley, generator vehicle, a Ganesh idol trolley, a dancing crowd on the road and onlookers along both pavements), `fixtures3d.js` (beam shader, fixtures), `people.js` (animated crowd), `cameras.js`, `stage.js`, `env.js`, `effects.js`, `screens.js` (LED walls) |
 | `sim/ui/` | `chrome.js` (top bar, dock), `drawers.js` (Rig builder, Test tab, Show), `planner.js` (Design with AI chat), `library.js` (song library, 1000+ songs), `timeline.js`, `dialogs.js`, `record.js`, `kit.js` (small DOM helpers, event bus, toasts) |
 | `sim/bench.js` | Test bench logic: one fixture alone, every mode (pure, unit-tested) |
 | `sim/make-rigs.mjs` | Generates the preset rigs into `sim/public/rigs/` (concert, club, dandiya, single/quad Sharpy) |
@@ -107,8 +107,20 @@ Short answer: **the front end follows common practice for a canvas-heavy app; th
 - A **real Claude run** on one demand: an event company asking for a sangeet for about 250 guests in a banquet hall, with a photo and "about 20 fixtures, warm colours", then a follow-up edit. Result: 19 s for the first design (20 fixtures: 6 pars, 4 Sharpy, 2 MegaPointe, 2 Spiider, 2 tubes, 2 sunstrips, 1 matrix, 1 strobe; club scene chosen, ceiling and mounting stated as assumptions, two questions asked) and 16 s for the edit (two Mythos 2 added, one sunstrip removed, rest untouched, 21 fixtures). No fixtures were dropped or moved by the checker, and the design plays on the simulator with the show. The photo was a screenshot of the simulator's own club, not a real photograph; Claude noticed this and said so. Real photographs have not been tried yet.
 
 ## 6. AI designer: conversation rules (updated)
-- Five venues are available to it: `hall` (banquet hall), `lawn` (wedding lawn), `stage`, `club`, `garba`. Weddings go to `hall` or `lawn`.
+- Six venues are available to it: `hall` (banquet hall), `lawn` (wedding lawn), `procession` (street procession), `stage`, `club`, `garba`. Weddings go to `hall` or `lawn`; processions, baraats and Ganesh visarjan go to `procession`.
 - It always starts from an **empty venue**. The client sends a rig back only when it is a design made in the same chat (`presetId === 'ai'`), never a built-in preset.
 - A thin first message gets **one question with tap-able answers** and changes nothing on screen (`kind: "ask"`); anything with an event and a place or size is built straight away (`kind: "design"`).
 - Replies are three short plain sentences, plus up to four "what it does" bullets; the assumptions and the light list are folded away.
 - Tested with real Claude on two full conversations (banquet hall wedding: question, build, warmer and livelier, remove strobes; garden wedding: build to "about 12 lights", add two beams, "continue building"). Every reply passed the automatic checks (no "null", at most four sentences, no jargon, correct venue, edits touch only what was asked).
+
+
+## 7. The music video (optional input to the director)
+
+Study and reasoning: [VIDEO-STUDY.md](VIDEO-STUDY.md). In short:
+
+- **Input.** A video file (mp4, mov, m4v, webm, mkv) or a YouTube link. The backend keeps the picture, extracts the sound to `audio.m4a` with ffmpeg (so audio and video share one clock) and runs the same job as for a song. Links download the video at 480p or less and fall back to audio only if that fails. The AI director is the only engine that reads pictures; "Watch the video" in the Add tab turns it off.
+- **Measure** ([server/lib/video.js](../server/lib/video.js)): ffmpeg reads 48x27 thumbnails at 4 fps; plain code gives a motion curve, hard cuts and the strongest movement peaks ("step hits"), then per-bar motion (`v`) and cuts (`c`) columns for the bar table, and the hits that land within 90 ms of a beat.
+- **Look**: ffmpeg builds 3x3 contact sheets (every tile stamped with its time) plus up to three burst sheets (9 frames, a quarter second apart) at the biggest peaks. One Claude call (Read tool on the sheets, `MUSYNC_EFFORT_VIDEO`, default low) writes a "video brief": cast by role and look (never named from faces), scenes with the step, emotion, colours and energy, signature steps, lighting ideas. `cleanBrief` clamps and drops anything invalid.
+- **Use**: `director.js` runs this between research and the bible. The brief goes into the bible prompt, and `VIDEO_RULES` (bible) and `VIDEO_CUE_RULES` (cues) are appended to the system prompts only when a video exists; audio-only prompts are byte-for-byte unchanged. Any failure becomes a warning in the report and the show is made from audio.
+- **Privacy.** The video and the sheets are deleted when the job ends (`cleanVideoFiles`); `video.json` (the brief and the measured profile) stays in the job folder. Frames go only to the Claude session on this computer.
+- **Tests.** [test/video.test.js](../test/video.test.js) (maths, brief cleaning, prompts, a generated clip through ffmpeg), the "music video" e2e test in [test/e2e/ui.tests.mjs](../test/e2e/ui.tests.mjs).
