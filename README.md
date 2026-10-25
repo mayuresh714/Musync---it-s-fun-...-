@@ -11,7 +11,7 @@ audio ─▶ analyze (pure JS DSP) ─▶ draft / Claude /wal skill ─▶ song.
 
 ## Live demo
 
-**{{DEMO_URL}}** (works on a phone too): the full simulator with the two copyright-free demo songs, every venue (concert stage, garba ground, club, banquet hall, wedding lawn and a Ganesh procession street), every camera and the Lights panel.
+**Deploy your own copy on Vercel in one click:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmayuresh714%2FMusync---it-s-fun-...-&project-name=musync-light-show). The build settings are in [vercel.json](vercel.json), so there is nothing to configure. The result works on a phone too: the full simulator with the two copyright-free demo songs, every venue (concert stage, garba ground, club, banquet hall, wedding lawn and a Ganesh procession street), every camera and the Lights panel.
 
 The hosted demo has no server behind it, so **Design with AI** and the AI director are switched off there, and it says so. They need the Musync server, which runs on your own computer and uses your own Claude login (see below). The demo contains no commercial audio, lyrics or video.
 
