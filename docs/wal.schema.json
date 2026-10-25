@@ -53,7 +53,13 @@
        "concert",
        "devotional",
        "wedding",
-       "romantic"
+       "romantic",
+       "rock",
+       "hiphop",
+       "sufi",
+       "classical",
+       "folk",
+       "pop"
       ]
      }
     },
@@ -183,8 +189,115 @@
      "lyric": {
       "type": "string",
       "description": "Key lyric line or meaning, for the creative layer."
+     },
+     "move": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Movement figures the director chose for this section (names from the MOVE looks)."
      }
     }
+   }
+  },
+  "motifs": {
+   "type": "object",
+   "description": "Recurring phrases of the song, by id. Phrases point at them.",
+   "additionalProperties": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "gist": {
+      "type": "string"
+     },
+     "role": {
+      "enum": [
+       "refrain",
+       "tagline",
+       "line",
+       "answer",
+       "lift",
+       "instrumental",
+       "silence"
+      ]
+     }
+    }
+   }
+  },
+  "phrases": {
+   "type": "array",
+   "description": "The lyric architecture: lines, refrains and taglines in time order. Cues follow them.",
+   "items": {
+    "type": "object",
+    "required": [
+     "t",
+     "until",
+     "role"
+    ],
+    "properties": {
+     "t": {
+      "type": "number",
+      "minimum": 0
+     },
+     "until": {
+      "type": "number",
+      "minimum": 0
+     },
+     "role": {
+      "enum": [
+       "refrain",
+       "tagline",
+       "line",
+       "answer",
+       "lift",
+       "instrumental",
+       "silence"
+      ]
+     },
+     "motif": {
+      "type": "string"
+     },
+     "n": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Which return of the motif this is (1 = first)."
+     },
+     "gist": {
+      "type": "string",
+      "description": "Short paraphrase of what is sung (never verbatim lyrics)."
+     },
+     "image": {
+      "enum": [
+       "embrace",
+       "gaze",
+       "fire",
+       "water",
+       "duel",
+       "meet",
+       "urgency",
+       "pride",
+       "longing",
+       "flirt",
+       "hush",
+       "hollow",
+       "bloom",
+       "rhythm"
+      ],
+      "description": "What the line is about, in light: the choreographer plays this image across every layer."
+     },
+     "dark": {
+      "type": "boolean",
+      "description": "On a silence: a true blackout (rare). Without it a silence holds a low breathing colour."
+     },
+     "energy": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     }
+    },
+    "additionalProperties": false
    }
   },
   "cues": {
@@ -213,8 +326,24 @@
        "strobe",
        "laser",
        "blinder",
+       "tube",
+       "matrix",
        "all"
       ]
+     },
+     "group": {
+      "enum": [
+       "all",
+       "left",
+       "right",
+       "odd",
+       "even",
+       "inner",
+       "outer",
+       "front",
+       "back"
+      ],
+      "description": "Only these fixtures of the layer play the cue (default all). Lets one layer be two ensembles."
      },
      "move": {
       "type": "object",
@@ -233,7 +362,30 @@
          "circle",
          "crossfire",
          "ballyhoo",
-         "tunnel"
+         "tunnel",
+         "bounce",
+         "snap",
+         "swing",
+         "pulse_fan",
+         "domino",
+         "spin",
+         "cone",
+         "vocal",
+         "orbit",
+         "lissajous",
+         "helix",
+         "lotus",
+         "carousel",
+         "curtain",
+         "scissor",
+         "ripple",
+         "stairs",
+         "scanline",
+         "spiral",
+         "peacock",
+         "dance",
+         "drift",
+         "ribbon"
         ]
        },
        "intensity": {
@@ -348,6 +500,41 @@
          "down",
          "performer"
         ]
+       },
+       "pattern": {
+        "enum": [
+         "single",
+         "double",
+         "triple",
+         "gallop",
+         "heartbeat",
+         "burst",
+         "stutter",
+         "split",
+         "chase",
+         "random"
+        ]
+       },
+       "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99999,
+        "description": "Picks a variation of a figure."
+       },
+       "phase": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "glide": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 16,
+        "description": "Beats over which this look eases in from the previous one (default: a few beats; 0 = cut)."
+       },
+       "prism": {
+        "type": "boolean",
+        "description": "Insert the prism: each beam splits into a ring of rays."
        }
       },
       "additionalProperties": false
@@ -372,7 +559,17 @@
          "swell",
          "fade",
          "dandiya_tap",
-         "garba_circle"
+         "strobe_seq",
+         "garba_circle",
+         "comet",
+         "meter",
+         "ripple",
+         "checker",
+         "eq",
+         "rain",
+         "plasma",
+         "diagonal",
+         "thump"
         ]
        },
        "intensity": {
@@ -487,6 +684,41 @@
          "down",
          "performer"
         ]
+       },
+       "pattern": {
+        "enum": [
+         "single",
+         "double",
+         "triple",
+         "gallop",
+         "heartbeat",
+         "burst",
+         "stutter",
+         "split",
+         "chase",
+         "random"
+        ]
+       },
+       "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99999,
+        "description": "Picks a variation of a figure."
+       },
+       "phase": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "glide": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 16,
+        "description": "Beats over which this look eases in from the previous one (default: a few beats; 0 = cut)."
+       },
+       "prism": {
+        "type": "boolean",
+        "description": "Insert the prism: each beam splits into a ring of rays."
        }
       },
       "additionalProperties": false
@@ -503,7 +735,11 @@
          "cycle",
          "split",
          "gradient",
-         "rainbow"
+         "rainbow",
+         "sweep",
+         "pairs",
+         "fire",
+         "tide"
         ]
        },
        "intensity": {
@@ -618,6 +854,41 @@
          "down",
          "performer"
         ]
+       },
+       "pattern": {
+        "enum": [
+         "single",
+         "double",
+         "triple",
+         "gallop",
+         "heartbeat",
+         "burst",
+         "stutter",
+         "split",
+         "chase",
+         "random"
+        ]
+       },
+       "seed": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 99999,
+        "description": "Picks a variation of a figure."
+       },
+       "phase": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "glide": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 16,
+        "description": "Beats over which this look eases in from the previous one (default: a few beats; 0 = cut)."
+       },
+       "prism": {
+        "type": "boolean",
+        "description": "Insert the prism: each beam splits into a ring of rays."
        }
       },
       "additionalProperties": false
@@ -627,7 +898,12 @@
        "flash",
        "blackout",
        "burst",
-       "snap"
+       "snap",
+       "co2",
+       "confetti",
+       "flame",
+       "spark",
+       "streamers"
       ]
      },
      "dur": {
@@ -678,6 +954,11 @@
        "blackout",
        "burst",
        "snap",
+       "co2",
+       "confetti",
+       "flame",
+       "spark",
+       "streamers",
        "none"
       ]
      },

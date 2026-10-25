@@ -13,7 +13,7 @@ import { applyImage } from './imagery.js';
 import { BEAM, LIFT, SPOT, BEAM_DIM, PIXEL, TUBE, MATRIX, WASH, COLOR, LASER, STROBE_PICK } from './repertoire.js';
 
 // bump when the choreography changes enough that older shows should be re-made from their stored structure
-export const CHOREO_VERSION = 4;
+export const CHOREO_VERSION = 5;
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 const CALM = new Set(['devotional', 'romantic', 'classical']);
@@ -152,6 +152,8 @@ export function choreograph({ sections, phrases, analysis: a, palettes, style = 
   const downsIn = (t0, t1) => a.downbeats.filter((d) => d >= t0 - 1e-3 && d < t1 - 1e-3);
   const finalTag = [...phrases].reverse().find((p) => p.role === 'tagline');
   const signatures = {};
+  const lineSigs = {}; // a stanza line that returns (same motif) is lit the same way each time, so the room can learn it
+  let darkUsed = 0;
 
   const lastFx = { co2: -99, flame: -99, confetti: -99, spark: -99, streamers: -99 };
   const mayFire = (type, t, gap) => { if (t - lastFx[type] < gap) return false; lastFx[type] = t; return true; };
@@ -216,15 +218,29 @@ export function choreograph({ sections, phrases, analysis: a, palettes, style = 
     if (p.role !== 'line' && p.role !== 'answer' && p.role !== 'lift') lineIdx = 0;
 
     if (p.role === 'silence') {
-      for (const l of ['beam', 'spot', 'wash', 'pixel', 'tube', 'matrix', 'laser', 'strobe', 'blinder']) off(l);
-      cues.push({ t: r3(t), layer: 'all', fx: 'blackout', dur: r3(Math.max(0.2, dur - 0.05)) });
+      // Silence is music too. By default the room keeps one colour and breathes; a full blackout is rare (the director
+      // flags it, it needs a loud phrase before it, and a show gets two at most).
+      if (p.dark && darkUsed < 2 && (prev?.energy ?? 0) >= 0.6) {
+        darkUsed++;
+        for (const l of ['beam', 'spot', 'wash', 'pixel', 'tube', 'matrix', 'laser', 'strobe', 'blinder']) off(l);
+        cues.push({ t: r3(t), layer: 'all', fx: 'blackout', dur: r3(Math.max(0.2, dur - 0.05)) });
+      } else {
+        const hold = (i) => ({ look: 'static', palette: pal, index: i % n });
+        put('wash', { dim: { look: 'breathe', speed: 8, intensity: 0.34 }, color: hold(idx) });
+        put('beam', { move: { look: 'drift', speed: 32 }, dim: { look: 'breathe', speed: 8, intensity: 0.3 }, color: hold(idx + 1) });
+        put('spot', { dim: { look: 'breathe', speed: 8, intensity: 0.35 }, color: hold(idx + 2) });
+        for (const l of ['pixel', 'tube', 'matrix']) put(l, { dim: { look: 'breathe', speed: 8, intensity: 0.22 }, color: hold(idx) });
+        for (const l of ['laser', 'strobe', 'blinder']) off(l);
+      }
     }
 
     else if (p.role === 'line' || p.role === 'answer' || p.role === 'lift') {
       const lift = p.role === 'lift';
       // beams/spots: the voice. Quiet lines drift and follow the vocal; livelier ones swing, dance or travel with the kick.
-      let fig, dim;
-      if (lift) { const e = picker.pick(LIFT, 'lift', { ...x, bars: dur / barSec }); fig = { ...e.make({ ...x, bars: dur / barSec }), feel: 'flow' }; dim = { look: 'swell', intensity: 0.95 }; }
+      let fig, dim, lcol, lspot;
+      const lsig = !lift && p.motif ? lineSigs[p.motif] : null;
+      if (lsig) { fig = lsig.fig; dim = lsig.dim; lcol = lsig.col; lspot = lsig.spot; held = { sec: sec.id, fig, dim, n: 1 }; }
+      else if (lift) { const e = picker.pick(LIFT, 'lift', { ...x, bars: dur / barSec }); fig = { ...e.make({ ...x, bars: dur / barSec }), feel: 'flow' }; dim = { look: 'swell', intensity: 0.95 }; }
       else if (held && held.sec === sec.id && held.n < 3 && !prev?.role?.match(/silence|refrain|tagline/)) {
         // the figure holds across a few lines while colour and the other layers move on: layers change at different rates
         fig = held.fig; dim = held.dim; held.n++;
@@ -234,14 +250,17 @@ export function choreograph({ sections, phrases, analysis: a, palettes, style = 
         dim = beamDim(fig);
         held = { sec: sec.id, fig, dim, n: 1 };
       }
-      putFigure('beam', fig, dim, lift ? { look: 'sweep', palette: pal, speed: 8 } : color('beam'));
+      if (!lift && !lcol) lcol = color('beam');
+      if (!lift && p.motif && !lsig) lineSigs[p.motif] = { fig, dim, col: lcol };
+      putFigure('beam', fig, dim, lift ? { look: 'sweep', palette: pal, speed: 8 } : lcol);
       if (!lift && !calm) {
-        // negative space: one half of the heads rests through quieter lines (alternating), and every line ends on a breath of dark
+        // negative space: one half of the heads rests through quieter lines (alternating), and every line ends on a low breath of light, never black
         if (x.L < 0.75) { put('beam', { group: restHalf++ % 2 ? 'odd' : 'even', dim: { look: 'off' } }); }
-        if (dur > spb * 6) put('beam', { dim: { look: 'off' } }, r3(u - spb), u);
+        if (dur > spb * 6) put('beam', { dim: { look: 'breathe', speed: 8, intensity: 0.3 } }, r3(u - spb), u);
       }
       const sp = picker.pick(SPOT, 'spot', x);
-      put('spot', { move: sp.make(x).move, dim: { look: 'follow', env: 'mid', intensity: 0.85 }, color: { look: 'static', palette: pal, index: (idx + 2) % n } });
+      if (!lift && p.motif && !lsig) lineSigs[p.motif].spot = sp.make(x).move;
+      put('spot', { move: lspot || (p.motif && lineSigs[p.motif]?.spot) || sp.make(x).move, dim: { look: 'follow', env: 'mid', intensity: 0.85 }, color: { look: 'static', palette: pal, index: (idx + 2) % n } });
       washLayer(lift ? { ...x, L: Math.max(x.L, 0.8) } : x, lift ? { look: 'swell', intensity: 0.9 } : {});
       gridLayers(lift ? { ...x, L: Math.max(0.7, x.L) } : x);
       if (lift && !calm && L > 0.45) put('strobe', { dim: { look: 'strobe_seq', pattern: 'stutter', intensity: 0.7 } }, lastBar, u); else off('strobe');

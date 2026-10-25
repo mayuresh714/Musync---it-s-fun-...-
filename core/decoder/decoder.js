@@ -211,7 +211,7 @@ export function createDecoder(wal, rig, { library = FIXTURES, prevPan: carriedPa
     for (const a of accents) {
       if (a.t > t + 0.01) break;
       const dt = t - a.t;
-      const fx = a.fx || { silence: 'blackout', drop: 'burst', hit: 'flash' }[a.type];
+      const fx = a.fx || { drop: 'burst', hit: 'flash' }[a.type];
       if (fx === 'blackout' && dt < (a.dur ?? 0.3) - 0.02) blackout = true;
       if (fx === 'burst' && dt < 0.45) { burst = Math.max(burst, a.strength ?? 1); flash = Math.max(flash, Math.exp(-dt / 0.35) * (a.strength ?? 1)); }
       if (fx === 'flash') hitFlash = Math.max(hitFlash, Math.exp(-dt / 0.18) * (a.strength ?? 1));

@@ -576,6 +576,9 @@ export function inGroup(el, g) {
     case 'outer': return el.center >= 0.5;
     case 'front': return el.depth >= 0.5;
     case 'back': return el.depth < 0.5;
+    // heads in pairs of two, left to right: pairs 1, 3, 5 are A and pairs 2, 4, 6 are B (a rig of three or fewer splits one and two)
+    case 'pairA': return el.n <= 3 ? el.i % 2 === 0 : Math.floor(el.i / 2) % 2 === 0;
+    case 'pairB': return el.n <= 3 ? el.i % 2 === 1 : Math.floor(el.i / 2) % 2 === 1;
     default: return true;
   }
 }

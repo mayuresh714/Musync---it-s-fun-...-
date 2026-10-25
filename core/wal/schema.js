@@ -119,6 +119,7 @@ export const WAL_SCHEMA = {
           n: { type: 'integer', minimum: 1, description: 'Which return of the motif this is (1 = first).' },
           gist: { type: 'string', description: 'Short paraphrase of what is sung (never verbatim lyrics).' },
           image: { enum: Object.keys(IMAGES), description: 'What the line is about, in light: the choreographer plays this image across every layer.' },
+          dark: { type: 'boolean', description: 'On a silence: a true blackout (rare). Without it a silence holds a low breathing colour.' },
           energy: unit,
         },
         additionalProperties: false,

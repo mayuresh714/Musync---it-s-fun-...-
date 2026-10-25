@@ -16,7 +16,7 @@ export const LAYERS = {
   matrix:  'LED pixel panels and walls (a 2-D grid). Equalisers, plasma, rings, rain and diagonals: the colourful picture behind the band.',
 };
 // Sub-ensembles of a layer: a cue with a group is played only by those fixtures, so one layer can be two players.
-export const GROUPS = ['all', 'left', 'right', 'odd', 'even', 'inner', 'outer', 'front', 'back'];
+export const GROUPS = ['all', 'left', 'right', 'odd', 'even', 'inner', 'outer', 'front', 'back', 'pairA', 'pairB'];
 export const LAYER_NAMES = [...Object.keys(LAYERS), 'all'];
 
 // If a rig has no fixtures for a layer, the decoder plays that layer on the next one that exists.
@@ -197,7 +197,7 @@ export const IMAGES = {
 export const ACCENT_TYPES = {
   drop: 'Section slams in. Decoder: blinder/strobe burst + all layers at full.',
   hit: 'An isolated stab that stands out. Decoder: flash + movers snap.',
-  silence: 'A real gap. Decoder: blackout for its duration, then slam back.',
+  silence: 'A real gap. The room holds a low breathing colour, then slams back; "dark": true on the phrase makes it a true blackout (rare).',
   riser: 'Tension ramp over `dur`. Decoder: strobe/pixel ramp in the last quarter.',
   cue: 'Free-form creative marker (lyric line, instrument entry); skill may attach fx.',
 };
