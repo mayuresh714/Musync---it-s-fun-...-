@@ -8,6 +8,7 @@ const sleep = (ms, signal) => new Promise((res, rej) => { const t = setTimeout(r
 
 export async function fakeDesign({ message, rig, newImages = [], signal, emit = () => {} }) {
   emit({ stage: newImages.length ? 'looking' : 'thinking', detail: 'Reading the request' }); await sleep(Number(process.env.MUSYNC_FAKE_MS || 250), signal);
+  if (/slow/i.test(message)) await sleep(8000, signal); // for testing Stop
   if (/fail/i.test(message)) throw new Error('The fake designer was asked to fail.');
   emit({ stage: 'designing', detail: 'Placing the fixtures' }); await sleep(Number(process.env.MUSYNC_FAKE_MS || 250), signal);
   const t = message.toLowerCase();
@@ -16,8 +17,8 @@ export async function fakeDesign({ message, rig, newImages = [], signal, emit = 
     return { plan: normalizePlan({ reply: 'Happy to help. What kind of event is it?', questions: [{ ask: 'What kind of event is it?', options: ['Wedding', 'DJ night', 'Concert', 'Garba night'] }] }).plan, warnings: [], costUsd: 0 };
   }
   const outdoor = /lawn|garden|farm|outdoor|open air|open-air/.test(t);
-  const venue = /garba|dandiya|navratri|mela/.test(t) ? 'garba' : /wedding|sangeet|reception|banquet|hall|engagement/.test(t) ? (outdoor ? 'lawn' : 'hall') : outdoor && !/concert/.test(t) ? 'lawn' : /club|dj|dance floor|lounge|party/.test(t) ? 'club' : 'stage';
-  const base = preset({ garba: 'dandiya', club: 'club', stage: 'concert', hall: 'hall', lawn: 'lawn' }[venue]);
+  const venue = /procession|baraat|visarjan|trolley|tractor/.test(t) ? 'procession' : /garba|dandiya|navratri|mela/.test(t) ? 'garba' : /wedding|sangeet|reception|banquet|hall|engagement/.test(t) ? (outdoor ? 'lawn' : 'hall') : outdoor && !/concert/.test(t) ? 'lawn' : /club|dj|dance floor|lounge|party/.test(t) ? 'club' : 'stage';
+  const base = preset({ garba: 'dandiya', club: 'club', stage: 'concert', hall: 'hall', lawn: 'lawn', procession: 'procession' }[venue]);
   let fixtures = base.fixtures;
   const asked = /(\d+)\s*(fixtures|lights)/.exec(t);
   const small = /limited|small|few|minimal|budget/.test(t);

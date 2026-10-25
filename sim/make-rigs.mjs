@@ -124,3 +124,29 @@ out('lawn', {
   ],
 });
 console.log('rigs written');
+
+// Ganesh procession: the light trolley's three truss arches (y 6.0 at z -18.5, -14, -9.5), its deck and rails, and a soft light on the idol trolley behind.
+{
+  const TY = 6.0, AIM = [0, 1.5, 8];
+  const arch = (prefix, model, xs, y, z, extra = {}) => xs.map((x, i) => ({ id: `${prefix}${i + 1}`, model, pos: [x, y, z], mount: 'hung', ...extra }));
+  out('procession', {
+    name: 'Ganesh procession',
+    venue: 'procession',
+    fixtures: [
+      ...arch('B', 'claypaky-sharpy', [-1.7, -0.6, 0.6, 1.7], TY - 0.1, -9.5),          // front arch: the beam line over the crowd
+      ...arch('BM', 'claypaky-sharpy', [-1.2, 1.2], TY - 0.1, -14),                        // middle arch
+      ...arch('MY', 'claypaky-mythos2', [-1.5, 0, 1.5], TY - 0.1, -18.5),                  // rear arch: hybrids
+      ...arch('S', 'robe-megapointe', [-1.8, 1.8], 1.55, -10.4).map((f) => ({ ...f, mount: 'floor' })), // spots on the deck
+      ...arch('P', 'led-par-54x3', [-1.8, 1.8, -1.8, 1.8], 3.7, -12).map((f, i) => ({ ...f, pos: [f.pos[0], 3.7, i < 2 ? -17 : -11], aim: AIM })), // wash on the side rails
+      ...arch('ST', 'martin-atomic-3000', [-1.8, 1.8], TY - 0.3, -9.5).map((f) => ({ ...f, pos: [f.pos[0] * 1.0, TY - 0.45, -9.5], aim: [0, 3.5, 12] })),
+      ...arch('HS', 'hybrid-strobe-bar', [0], TY - 0.5, -14, { aim: [0, 3.5, 12] }),
+      ...arch('BL', 'blinder-4lite', [-1.2, 1.2], TY - 0.9, -9.5, { aim: [0, 1.8, 10] }),
+      ...arch('TB', 'led-tube-2m', [-1.85, 1.85], 4.6, -14),
+      { id: 'PX1', model: 'pixel-bar-16', pos: [-0.9, 1.4, -8.3], mount: 'floor', aim: [0, 1.5, 8] },
+      { id: 'PX2', model: 'pixel-bar-16', pos: [0.9, 1.4, -8.3], mount: 'floor', aim: [0, 1.5, 8] },
+      { id: 'L1', model: 'laser-rgb-3w', pos: [-1.5, 1.5, -18.2], mount: 'floor' },
+      { id: 'L2', model: 'laser-rgb-3w', pos: [1.5, 1.5, -18.2], mount: 'floor' },
+      ...[[-1.7, 28], [1.7, 28], [-1.7, 36], [1.7, 36]].map(([x, z], i) => ({ id: `ID${i + 1}`, model: 'led-par-54x3', pos: [x, 5.2, z], mount: 'hung', aim: [0, 3.6, 32] })), // the idol, softly
+    ],
+  });
+}

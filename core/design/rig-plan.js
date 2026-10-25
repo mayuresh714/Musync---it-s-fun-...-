@@ -9,6 +9,7 @@ import { FIXTURES } from '../fixtures/library.js';
 export const VENUES = {
   hall: { label: 'Banquet hall (indoor, low ceiling, stage at one end, dance floor and round tables): weddings, sangeet, receptions, corporate dinners', bounds: { x: [-11.5, 11.5], y: [0, 4.8], z: [-8.5, 20] }, ceiling: 5 },
   lawn: { label: 'Wedding lawn (open air at night, mandap stage, ceremony chairs, dance floor, tables, string lights): garden weddings, receptions, farmhouse parties', bounds: { x: [-17, 17], y: [0, 7], z: [-9, 26] }, ceiling: 7 },
+  procession: { label: 'Street procession at night (a tractor pulling the light trolley, a generator vehicle behind it, a second tractor and trolley carrying the Ganesh idol, a dancing crowd on the road, shops and thousands of onlookers along both pavements): Ganesh visarjan, baraat, rath yatra, nagar kirtan, any moving DJ-trolley procession', bounds: { x: [-9, 9], y: [0, 9], z: [-26, 38] }, ceiling: 12 },
   stage: { label: 'Stage (outdoor or indoor, audience in front)', bounds: { x: [-20, 20], y: [0, 12], z: [-12, 30] }, ceiling: 12 },
   club: { label: 'Club / hall (dance floor with a DJ booth)', bounds: { x: [-12, 12], y: [0, 6.5], z: [-8, 14] }, ceiling: 6.5 },
   garba: { label: 'Open ground with a dance ring (garba, dandiya, mela)', bounds: { x: [-18, 18], y: [0, 10], z: [-3, 32] }, ceiling: 10 },

@@ -14,6 +14,7 @@ import { Batch, groundTexture, rangoliTexture, skyDome, skyline, treeBelt, bulbS
 import { Crowd, standingField, danceRings } from './people.js';
 import { LedScreen } from './screens.js';
 import { hall, lawn } from './venues2.js';
+import { procession } from './venues3.js';
 
 export const DECK = 1.2;
 
@@ -534,7 +535,7 @@ function club() {
 }
 
 export function buildVenue(kind, opts = {}) {
-  const v = kind === 'garba' ? garba(opts) : kind === 'club' ? club() : kind === 'hall' ? hall() : kind === 'lawn' ? lawn() : concert();
+  const v = kind === 'garba' ? garba(opts) : kind === 'club' ? club() : kind === 'hall' ? hall() : kind === 'lawn' ? lawn() : kind === 'procession' ? procession() : concert();
   const g = v.group;
   v.dandiya = !!opts.dandiya;
   if (new URLSearchParams(location.search).has('nocrowd')) v.crowd.visible = false;

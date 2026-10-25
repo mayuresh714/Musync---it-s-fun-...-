@@ -63,6 +63,7 @@ export class StageEffects {
 
   // jets stand along the front edge of whatever stage there is
   anchors() {
+    if (this.kind === 'procession') return { xs: [-1.5, -0.5, 0.5, 1.5], y: 1.3, z: -9.6 }; // jets on the light trolley's rear deck
     const club = this.kind === 'club' || this.kind === 'hall';
     const xs = club ? [-2.2, -0.8, 0.8, 2.2] : [-9, -5.5, -2, 2, 5.5, 9];
     return { xs, y: club ? 1.2 : DECK + 0.05, z: club ? -1.2 : -0.6 };
@@ -125,13 +126,13 @@ export class StageEffects {
       for (const x of xs.filter((_, i) => i % 2 === 1 || xs.length < 5)) for (let k = 0; k < 70; k++)
         this.sys.spark.emit([x + (R() - 0.5) * 0.15, y, z - 0.3], [(R() - 0.5) * 2.2, 7 + R() * 5, (R() - 0.4) * 2.4], 0.9 + R() * 0.8, [1, 0.85, 0.5], 0.09, R());
     } else if (e.type === 'streamers') {
-      const cannons = this.kind === 'club' || this.kind === 'hall' ? [-2.5, 2.5] : [-10, -3.5, 3.5, 10];
+      const cannons = this.kind === 'procession' ? [-1.5, 1.5] : this.kind === 'club' || this.kind === 'hall' ? [-2.5, 2.5] : [-10, -3.5, 3.5, 10];
       for (const cx of cannons) for (let k = 0; k < 80; k++) {
         const c = this.pal[Math.floor(R() * this.pal.length)] || [1, 1, 1];
         this.sys.confetti.emit([cx + (R() - 0.5) * 0.4, y + 0.3, z + 0.6], [(R() - 0.5) * 5 + cx * 0.15, 13 + R() * 6, 7 + R() * 9], 4.5 + R() * 2, c.map((v) => 0.45 + v * 0.55), 0.14, R());
       }
     } else if (e.type === 'confetti') {
-      const cannons = this.kind === 'club' || this.kind === 'hall' ? [-2, 2] : [-8, 0, 8];
+      const cannons = this.kind === 'procession' ? [-1.2, 1.2] : this.kind === 'club' || this.kind === 'hall' ? [-2, 2] : [-8, 0, 8];
       for (const cx of cannons) for (let k = 0; k < 170; k++) {
         const c = this.pal[Math.floor(R() * this.pal.length)] || [1, 1, 1];
         const mixw = R() < 0.25;
