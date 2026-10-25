@@ -19,7 +19,7 @@ const OUTPUT = { beam: 1.0, spot: 1.5, wash: 0.55, par: 0.32, strobe: 5, blinder
 const LENS = { beam: 0.055, spot: 0.08, wash: 0.13, par: 0.11, strobe: 0.2, blinder: 0.25, pixel: 0.04 };
 
 const beamMaterial = () => new THREE.ShaderMaterial({
-  uniforms: { uColor: { value: new THREE.Vector3() }, uR0: { value: 0.05 }, uR1: { value: 0.5 }, uLen: { value: 10 }, uHaze: { value: 1 }, uGain: { value: 1 }, uFall: { value: 0.045 }, uMinAng: { value: 0.0026 } },
+  uniforms: { uColor: { value: new THREE.Vector3() }, uR0: { value: 0.05 }, uR1: { value: 0.5 }, uLen: { value: 10 }, uHaze: { value: 1 }, uGain: { value: 1 }, uFall: { value: 0.016 }, uMinAng: { value: 0.0042 } },
   vertexShader: /* glsl */ `
     uniform float uR0; uniform float uR1; uniform float uLen; uniform float uMinAng;
     varying float vAlong; varying float vR; varying float vK; varying vec3 vW; varying vec3 vN;
@@ -43,11 +43,11 @@ const beamMaterial = () => new THREE.ShaderMaterial({
     void main() {
       vec3 V = normalize(cameraPosition - vW);
       float facing = abs(dot(normalize(vN), V));
-      float profile = pow(facing, 1.6) + 0.9 * pow(facing, 7.0); // soft edge plus a hot core: reads as a focused shaft
+      float profile = pow(facing, 1.6) + 0.9 * pow(facing, 7.0) + 1.1 * pow(facing, 30.0); // soft edge, hot core and a sharp bright spine: a focused shaft that stays a clear line
       float d = vAlong * uLen;
       float atten = exp(-d * uFall);
-      float tail = 1.0 - smoothstep(0.85, 1.0, vAlong);
-      float density = uHaze * atten / max(vR, 0.03) * mix(1.0, 1.0 / max(vK, 0.35), 0.6);
+      float tail = 1.0 - smoothstep(0.96, 1.0, vAlong); // holds its strength to the very end: the path does not fade out
+      float density = uHaze * mix(atten, 1.0, 0.35) * pow(1.0 / max(vR, 0.05), 0.8) * 0.7 * mix(1.0, 1.0 / max(vK, 0.35), 0.6);
       // a shaft passing right by the lens is not a wall of white: fade it out as the camera gets within a few metres
       float nearFade = smoothstep(1.0, 11.0, length(cameraPosition - vW));
       gl_FragColor = vec4(uColor * density * profile * tail * 0.035 * uGain * nearFade, 1.0);
