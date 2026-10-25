@@ -7,8 +7,8 @@ import { benchModes, benchTour } from '../bench.js';
 
 const ROLE_COLOR = { beam: 'var(--role-beam)', spot: 'var(--role-spot)', wash: 'var(--role-wash)', pixel: 'var(--role-pixel)', strobe: 'var(--role-strobe)', laser: 'var(--role-laser)', blinder: 'var(--role-blinder)', tube: 'var(--role-tube)', matrix: 'var(--role-matrix)' };
 const ROLE_ORDER = ['beam', 'spot', 'wash', 'pixel', 'tube', 'matrix', 'strobe', 'laser', 'blinder'];
-const PRESET_ICON = { concert: 'v_stage', club: 'v_club', hall: 'v_club', lawn: 'v_garba', dandiya: 'v_garba', 'single-sharpy': 'v_single', 'quad-sharpy': 'v_quad', custom: 'v_custom' };
-const PRESET_NOTE = { hall: 'Indoor banquet hall with stage, dance floor and round tables', lawn: 'Open-air wedding lawn with a mandap, tables and string lights', concert: 'Outdoor festival main stage', club: 'Dance club with truss and DJ booth', dandiya: 'Navratri ground with rings and canopy', 'single-sharpy': 'One beam: the smallest rig', 'quad-sharpy': 'Four beams on the deck', custom: 'Saved in this browser' };
+const PRESET_ICON = { concert: 'v_stage', club: 'v_club', hall: 'v_club', lawn: 'v_garba', procession: 'v_stage', dandiya: 'v_garba', 'single-sharpy': 'v_single', 'quad-sharpy': 'v_quad', custom: 'v_custom' };
+const PRESET_NOTE = { hall: 'Indoor banquet hall with stage, dance floor and round tables', lawn: 'Open-air wedding lawn with a mandap, tables and string lights', procession: 'Street procession: light trolley, generator, idol trolley and a crowd', concert: 'Outdoor festival main stage', club: 'Dance club with truss and DJ booth', dandiya: 'Navratri ground with rings and canopy', 'single-sharpy': 'One beam: the smallest rig', 'quad-sharpy': 'Four beams on the deck', custom: 'Saved in this browser' };
 
 const specLine = (p) => {
   const bits = [];
@@ -73,12 +73,18 @@ export function initDrawers({ actions, getState }) {
     const st = getState();
     venuePane.innerHTML = '';
     venuePane.append(el('div', { class: 'sect-head' }, el('span', { class: 'label', text: 'Choose a place' })));
-    for (const p of st.presets) {
-      venuePane.append(el('button', { class: 'opt', role: 'radio', 'aria-checked': String(p.id === st.presetId), onclick: () => actions.rig.load(p.id) },
-        el('span', { class: 'ico', html: icon(PRESET_ICON[p.id] || 'v_custom', 22) }),
-        el('span', {}, el('b', { text: p.name }), el('small', { text: `${p.count} fixture${p.count === 1 ? '' : 's'} · ${PRESET_NOTE[p.id] || ''}` })),
-        el('span', { class: 'tick', html: icon('check', 18) })));
-    }
+    const mine = st.presets.filter((p) => p.ai);
+    const row = (p) => {
+      const on = p.ai ? st.presetId === 'ai' && p.id === `ai:${st.aiId}` : p.id === st.presetId;
+      return el('div', { class: 'opt-wrap' },
+        el('button', { class: 'opt', role: 'radio', 'aria-checked': String(on), onclick: () => actions.rig.load(p.id) },
+          el('span', { class: 'ico', html: icon(PRESET_ICON[p.id] || (p.ai ? 'sparkle' : 'v_custom'), 22) }),
+          el('span', {}, el('b', { text: p.name }), el('small', { text: `${p.count} fixture${p.count === 1 ? '' : 's'} · ${p.ai ? 'Made with Design with AI' : PRESET_NOTE[p.id] || ''}` })),
+          el('span', { class: 'tick', html: icon('check', 18) })),
+        p.ai ? el('button', { class: 'btn icon ghost sm opt-x', 'aria-label': `Remove ${p.name}`, 'data-tip': 'Remove this design', html: icon('trash', 14), onclick: () => actions.rig.removeAi(p.id.slice(3)) }) : null);
+    };
+    for (const p of st.presets.filter((q) => !q.ai)) venuePane.append(row(p));
+    if (mine.length) { venuePane.append(el('div', { class: 'sect-head' }, el('span', { class: 'label', text: 'Your designs' }))); for (const p of mine) venuePane.append(row(p)); }
     venuePane.append(el('div', { class: 'sect-head' }, el('span', { class: 'label', text: 'Share' })),
       el('div', { class: 'row' },
         el('button', { class: 'btn', html: `${icon('download', 16)}<span>Export rig</span>`, onclick: () => actions.rig.exportRig() }),

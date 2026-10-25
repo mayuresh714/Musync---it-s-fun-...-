@@ -31,6 +31,7 @@ const RIG_PRESETS = [
   ['club', 'Club'],
   ['hall', 'Banquet hall'],
   ['lawn', 'Wedding lawn'],
+  ['procession', 'Ganesh procession'],
   ['quad-sharpy', '4 × Sharpy'],
   ['single-sharpy', 'Single Sharpy'],
 ];
@@ -39,7 +40,7 @@ const VOL_KEY = 'musync.volume';
 const QUALITY_KEY = 'musync.quality';
 const LOOK_KEY = 'musync.look';
 const LOOK_DEFAULT = { beamWidth: 2, spill: 0.3, screen: 0.5, glow: 1, effects: true, surr: 0.35, haze: 1.8, beamGain: 1.6 };
-const VENUE_OF = { stage: 'concert', club: 'club', garba: 'garba', hall: 'hall', lawn: 'lawn' };
+const VENUE_OF = { stage: 'concert', club: 'club', garba: 'garba', hall: 'hall', lawn: 'lawn', procession: 'procession' };
 const CAMERA_CYCLE = ['director', 'crane', 'orbit', 'reveal', 'fly', 'top', 'foh', 'crowd', 'pit', 'stage', 'walk', 'free'];
 const KEY_CAMERA = { Digit1: 'director', Digit2: 'orbit', Digit3: 'reveal', Digit4: 'fly', Digit5: 'top', Digit6: 'foh', Digit7: 'crowd', Digit8: 'pit', Digit9: 'stage', Digit0: 'walk' };
 
@@ -47,7 +48,7 @@ const lib = createLibrary();
 
 const app = {
   queue: { ids: [], shuffle: false, autoNext: true, history: [] },
-  wal: null, rig: null, presetId: 'concert', presets: [], decoder: null,
+  wal: null, rig: null, presetId: 'concert', aiId: null, quiet: false, presets: [], decoder: null,
   audio: new Audio(), audioBuffer: null, audioName: null,
   songs: [], songId: null, walCache: new Map(),
   clock: 0, energy: 0.5, playing: false, venue: null, selected: null,
@@ -236,7 +237,27 @@ function setLook(patch, { persist = true } = {}) {
 
 // ── rig ──────────────────────────────────────────────────────────────────
 function savedRig() { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY)); } catch { return null; } }
+
+// Designs from "Design with AI" are kept as setups of their own (never over a built-in rig or "My rig").
+const AI_KEY = 'musync.ai.rigs';
+const aiRigs = () => { try { const v = JSON.parse(localStorage.getItem(AI_KEY)); return Array.isArray(v) ? v.filter((x) => x?.id && x.rig?.fixtures?.length) : []; } catch { return []; } };
+const putAiRigs = (l) => { try { localStorage.setItem(AI_KEY, JSON.stringify(l.slice(0, 20))); } catch { /* storage may be unavailable */ } };
+function keepAiDesign(rig, { name, camera, id = null } = {}) {
+  const list = aiRigs(), at = Date.now();
+  const entry = { id: id && list.some((x) => x.id === id) ? id : Math.random().toString(36).slice(2, 10), name: name || rig.name || 'AI design', venue: rig.venue, camera: camera || null, rig: JSON.parse(JSON.stringify(rig)), at };
+  putAiRigs([entry, ...list.filter((x) => x.id !== entry.id)]);
+  return entry.id;
+}
+function removeAiDesign(id) {
+  const list = aiRigs(), e = list.find((x) => x.id === id);
+  if (!e) return;
+  putAiRigs(list.filter((x) => x.id !== id));
+  if (app.presetId === 'ai' && app.aiId === id) { app.aiId = null; loadRigPreset('concert'); }
+  bus.emit('presets');
+  toast(`Removed "${e.name}".`, { kind: 'info', ms: 2200 });
+}
 function markEdited() {
+  if (app.presetId === 'ai' && app.aiId) { keepAiDesign(app.rig, { name: app.rig.name, id: app.aiId }); bus.emit('presets'); return; } // hand edits to a design stay in that design
   if (app.presetId !== 'custom') { app.presetId = 'custom'; if (app.rig.name && !/\(edited\)$/.test(app.rig.name)) app.rig.name += ' (edited)'; }
   try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(app.rig)); } catch {}
   bus.emit('presets');
@@ -255,24 +276,28 @@ function rigChanged(rebuildVisuals = true) {
 }
 
 async function loadRigPreset(id) {
-  const rig = id === 'custom' ? savedRig() : await (await fetch(`rigs/${id}.json`)).json();
+  const ai = id.startsWith('ai:') ? aiRigs().find((x) => x.id === id.slice(3)) : null;
+  const rig = ai ? JSON.parse(JSON.stringify(ai.rig)) : id === 'custom' ? savedRig() : id.startsWith('ai:') ? null : await (await fetch(`rigs/${id}.json`)).json();
   if (!rig) return loadRigPreset('concert');
-  app.rig = rig; app.presetId = id; app.selected = null;
+  app.rig = rig; app.presetId = ai ? 'ai' : id; app.aiId = ai ? ai.id : null; app.selected = null;
+  if (ai?.camera) actions.setCamera(ai.camera);
   gizmo.detach(); rigView.select(null);
   await ensureVenue(rig.venue || 'stage', { silent: !app.venue });
   rigChanged();
   bus.emit('selection', null);
 }
 
-// An AI design (already checked by the backend) becomes the rig on screen. Nothing is saved over "My rig".
-async function applyPlan(plan) {
+// An AI design (already checked by the backend) becomes the rig on screen and is kept as a setup of its own.
+// replace: the design on screen is being changed, so its saved copy is updated; otherwise it is a new setup.
+async function applyPlan(plan, { replace = false, id = null } = {}) {
   if (bench.on) await benchStop();
   app.rig = JSON.parse(JSON.stringify(plan.rig)); app.presetId = 'ai'; app.selected = null;
+  app.aiId = keepAiDesign(app.rig, { name: plan.name, camera: plan.camera, id: id || (replace ? app.aiId : null) });
   gizmo.detach(); rigView.select(null);
   await ensureVenue(app.rig.venue || 'stage', { silent: !app.venue });
   rigChanged();
   if (plan.camera) actions.setCamera(plan.camera);
-  if (!app.playing) play();
+  if (!app.playing && !app.quiet) play();
   bus.emit('selection', null);
   bus.emit('presets');
 }
@@ -286,7 +311,7 @@ function benchShow() {
 }
 async function benchStart(model, { keep = false } = {}) {
   if (!bench.on) {
-    bench.saved = { rig: app.rig, presetId: app.presetId, wal: app.wal, camera: app.camera, selected: app.selected };
+    bench.saved = { rig: app.rig, presetId: app.presetId, aiId: app.aiId, wal: app.wal, camera: app.camera, selected: app.selected };
     bench.base = app.wal; bench.on = true;
     actions.setCamera('foh');
   }
@@ -305,7 +330,7 @@ function benchPalette(name) { if (!bench.on) return; bench.palette = name; bench
 async function benchStop() {
   if (!bench.on) return;
   const s = bench.saved; bench.on = false; bench.saved = null;
-  app.rig = s.rig; app.presetId = s.presetId; app.selected = null;
+  app.rig = s.rig; app.presetId = s.presetId; app.aiId = s.aiId ?? null; app.selected = null;
   gizmo.detach(); rigView.select(null);
   await ensureVenue(s.rig.venue || 'stage', { silent: true });
   rigChanged();
@@ -671,7 +696,7 @@ function applyVolume() { app.audio.volume = app.muted ? 0 : app.volume; bus.emit
 function play() {
   if (!app.wal) { toast('Open a song first.', { kind: 'info' }); return; }
   if (app.clock >= app.wal.meta.duration - 0.2) seek(0);
-  app.playing = true;
+  app.playing = true; if (app.quiet) { app.quiet = false; bus.emit('quiet', false); }
   document.querySelector('.hint')?.remove();
   if (app.audio.src) { app.audio.currentTime = app.clock; app.audio.play().catch(() => toast('The browser blocked audio. Press play again.', { kind: 'warn' })); }
   bus.emit('playing', true);
@@ -742,14 +767,16 @@ const actions = {
   setVolume(v) { app.volume = v; app.muted = false; try { localStorage.setItem(VOL_KEY, String(v)); } catch {} applyVolume(); },
   toggleMute() { app.muted = !app.muted; applyVolume(); },
   plan: { apply: applyPlan },
+  // the chat can hold the show still: nothing plays or restarts itself while someone is designing
+  quiet(on) { app.quiet = !!on; if (on && app.playing) pause(); else if (!on && !app.playing && app.wal) play(); bus.emit('quiet', app.quiet); },
   bench: { start: benchStart, pick: benchPick, palette: benchPalette, stop: benchStop, state: benchState },
-  rig: { load: loadRigPreset, exportRig, importRig: () => $('#rigFile').click(), add: addFixture, select: selectFixture, remove: deleteSelected, duplicate: () => cloneSelected(false), mirror: () => cloneSelected(true), patch: patchFixture },
+  rig: { load: loadRigPreset, removeAi: removeAiDesign, exportRig, importRig: () => $('#rigFile').click(), add: addFixture, select: selectFixture, remove: deleteSelected, duplicate: () => cloneSelected(false), mirror: () => cloneSelected(true), patch: patchFixture },
 };
 
 const getState = () => ({
   songs: app.songs, songId: app.songId, playing: app.playing, autoNext: app.queue.autoNext, shuffle: app.queue.shuffle, hasAudio: !!app.audioBuffer, audioName: app.audioName,
   camera: app.camera, haze: app.haze, quality: app.quality, showPerf: app.showPerf, rig: app.rig, selected: app.selected, presetId: app.presetId,
-  presets: [...app.presets, ...(savedRig() ? [{ id: 'custom', name: 'My rig', count: savedRig().fixtures.length }] : [])],
+  presets: [...app.presets, ...(savedRig() ? [{ id: 'custom', name: 'My rig', count: savedRig().fixtures.length }] : []), ...aiRigs().map((x) => ({ id: `ai:${x.id}`, name: x.name, count: x.rig.fixtures.length, ai: true, venue: x.venue }))], aiId: app.aiId, quiet: app.quiet,
 });
 
 const chrome = initChrome({ actions, getState });

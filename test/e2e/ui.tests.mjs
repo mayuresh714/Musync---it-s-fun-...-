@@ -1,5 +1,6 @@
 // Interface tests. Each test gets a fresh page; every navigation control in the app is exercised.
 import { writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const assert = (c, m) => { if (!c) throw new Error(m); };
@@ -65,7 +66,7 @@ export const tests = [
   { name: 'cameras: J is the crane, and every crane shot stays close to the stage on each venue', async fn({ page, ev }) {
     await page.keyboard.press('j'); await page.waitForTimeout(150);
     eq(await ev(() => window.__musync.app.camera), 'crane', 'J selects the crane');
-    for (const rig of ['concert', 'dandiya', 'club', 'hall', 'lawn']) {
+    for (const rig of ['concert', 'dandiya', 'club', 'hall', 'lawn', 'procession']) {
       const r = await ev(async (id) => {
         const M = window.__musync; await M.loadRigPreset(id);
         const I = M.camRig.info, out = [];
@@ -77,7 +78,7 @@ export const tests = [
       }, rig);
       assert(!r.bad, `${rig}: crane position is not a number`);
       assert(r.n >= 3, `${rig}: wants at least three crane moves, has ${r.n}`);
-      assert(r.max < { concert: 30, dandiya: 30, club: 16, hall: 18, lawn: 30 }[rig], `${rig}: the crane wandered ${r.max.toFixed(1)} m from the stage`);
+      assert(r.max < { concert: 30, dandiya: 30, club: 16, hall: 18, lawn: 30, procession: 30 }[rig], `${rig}: the crane wandered ${r.max.toFixed(1)} m from the stage`);
     }
   } },
   { name: 'record: Shift+E and the button record live and download a video', async fn({ page, ev }) {
@@ -249,7 +250,7 @@ export const tests = [
   } },
   { name: 'library: search filters live, supports bpm: and style:, highlights, clears with Esc, shows empty state', async fn({ page, ev }) {
     await openLib(page);
-    await page.keyboard.type('musync demo'); await page.waitForTimeout(200);
+    await page.keyboard.type('synthetic'); await page.waitForTimeout(200);
     eq((await rowTitles(page))[0], 'Musync Demo (synthetic)', 'best match first');
     assert((await page.locator('.srow mark').count()) > 0, 'matches are highlighted');
     await page.keyboard.press('Escape'); await page.waitForTimeout(150);
@@ -453,6 +454,22 @@ export const tests = [
     await page.click('.afoot .btn.primary');
     await page.waitForFunction(() => document.querySelector('.aitem.dup'), null, { timeout: 8000 });
   }, timeout: 70000 },
+  { name: 'add: a music video can be added, the watch-the-video switch works and the song reaches the library', async fn({ page, ev }, { shots }) {
+    const mp4 = join(shots, 'Dance_Clip.mp4');
+    const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=0x223355:s=320x180:d=4:r=25', '-f', 'lavfi', '-i', 'sine=f=330:d=4', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', mp4]);
+    assert(r.status === 0, 'ffmpeg made the clip');
+    await page.keyboard.press('a'); await page.waitForSelector('.dropbig');
+    const sw = page.locator('.pane-add button[aria-label="Watch the video"]');
+    eq(await sw.getAttribute('aria-checked'), 'true', 'on by default');
+    await sw.click(); eq(await sw.getAttribute('aria-checked'), 'false', 'can be turned off'); await sw.click();
+    await page.setInputFiles('.pane-add input[type=file]', [mp4]);
+    await page.waitForFunction(() => document.querySelectorAll('.aitem').length === 1);
+    eq(await page.locator('.aitem .ameta b').first().innerText(), 'Dance Clip', 'video name is prettified');
+    await page.click('.afoot .btn.primary');
+    await page.waitForSelector('.aitem.done', { timeout: 30000 });
+    assert(await ev(() => window.__musync.lib.entries.some((e) => e.title === 'Dance Clip')), 'the video became a song in the library');
+    await page.screenshot({ path: join(shots, 'add-video.png') });
+  } },
   { name: 'add: failures can be retried, unsupported files are refused, items can be removed', async fn({ page }, { shots }) {
     const bad = join(shots, 'fail_me.wav'); wav(bad);
     const txt = join(shots, 'notes.txt'); writeFileSync(txt, 'hello');
@@ -651,6 +668,35 @@ const botCount = (page) => page.locator('#aiDrawer .ai-msg.bot .ai-plan').count(
 const waitPlans = (page, n) => page.waitForFunction((k) => document.querySelectorAll('#aiDrawer .ai-msg.bot .ai-plan').length >= k, n, { timeout: 15000 });
 
 tests.push(
+  { name: 'design: the panel goes full screen, shrinks to a bar, remembers its width and keeps the draft', async fn({ page }) {
+    await page.click('button[aria-controls="aiDrawer"]'); await page.waitForSelector('#aiDrawer.open'); await page.waitForTimeout(300);
+    const R = () => page.evaluate(() => { const r = document.querySelector('#aiDrawer').getBoundingClientRect(); return { w: r.width, h: r.height, l: r.left }; });
+    const side = await R();
+    await page.fill('#aiDrawer .ai-text', 'a draft I have not sent');
+    await page.click('#aiDrawer .ai-max'); await page.waitForTimeout(450);
+    const full = await R(), W = page.viewportSize().width;
+    assert(full.w > W - 40 && full.h > side.h, `full screen covers the window (${Math.round(full.w)} of ${W})`);
+    eq(await page.inputValue('#aiDrawer .ai-text'), 'a draft I have not sent', 'draft kept in full screen');
+    await page.keyboard.press('Escape'); await page.waitForTimeout(450);
+    assert((await R()).w < full.w - 100, 'Escape leaves full screen');
+    await page.click('#aiDrawer .ai-min'); await page.waitForTimeout(450);
+    const bar = await R();
+    assert(bar.h <= 64 && bar.w <= 380, `a slim bar (${Math.round(bar.w)}x${Math.round(bar.h)})`);
+    await page.click('#aiDrawer .ai-header'); await page.waitForTimeout(450);
+    assert((await R()).h > 300, 'clicking the bar opens it again');
+    // width: drag the edge, reload, still that wide; double-click resets
+    const g = await rect(page, '#aiDrawer .ai-grip'), y = g.t + g.h / 2;
+    await page.mouse.move(g.l + 3, y); await page.mouse.down(); await page.mouse.move(g.l - 120, y, { steps: 6 }); await page.mouse.up();
+    const wide = await R(); assert(wide.w > side.w + 80, `dragging the edge widens it (${Math.round(side.w)} -> ${Math.round(wide.w)})`);
+    await page.reload(); await page.waitForFunction(() => window.__musync?.app?.wal && !document.querySelector('#loader:not(.done)'));
+    await page.click('button[aria-controls="aiDrawer"]'); await page.waitForSelector('#aiDrawer.open'); await page.waitForTimeout(400);
+    assert(Math.abs((await R()).w - wide.w) < 3, 'width remembered after a reload');
+    eq(await page.inputValue('#aiDrawer .ai-text'), 'a draft I have not sent', 'draft survives a reload');
+    await page.dblclick('#aiDrawer .ai-grip'); await page.waitForTimeout(400);
+    assert(Math.abs((await R()).w - 460) < 3, 'double-click resets the width');
+    eq(await page.locator('#aiDrawer .ai-mic').count(), 1, 'a microphone button is there');
+    await page.fill('#aiDrawer .ai-text', '');
+  } },
   { name: 'design: opens from the top bar and with D, is one-at-a-time with the other panels, and shows ideas', async fn({ page }) {
     await page.click('button[aria-controls="aiDrawer"]');
     await page.waitForSelector('#aiDrawer.open');
@@ -826,8 +872,8 @@ for (const [label, W, H] of SIZES) {
 }
 
 tests.push(
-  { name: 'venues: Banquet hall and Wedding lawn load, play, and every camera view works in them', async fn({ page, ev }) {
-    for (const [id, kind] of [['hall', 'hall'], ['lawn', 'lawn']]) {
+  { name: 'venues: Banquet hall, Wedding lawn and Ganesh procession load, play, and every camera view works in them', async fn({ page, ev }) {
+    for (const [id, kind] of [['hall', 'hall'], ['lawn', 'lawn'], ['procession', 'procession']]) {
       await ev(async (r) => { await window.__musync.loadRigPreset(r); }, id);
       await page.waitForFunction((k) => window.__musync.app.venue?.kind === k, kind, { timeout: 20000 });
       assert(await ev(() => window.__musync.app.rig.fixtures.length >= 10), `${id} has a starter rig`);
@@ -842,7 +888,7 @@ tests.push(
     }
     await page.click('button[aria-controls="rigDrawer"]'); await page.waitForSelector('#rigDrawer.open');
     const names = await page.locator('#rigDrawer .opt b').allInnerTexts();
-    for (const n of ['Banquet hall', 'Wedding lawn', 'Concert stage', 'Dandiya / Garba ground', 'Club']) assert(names.includes(n), `place list has ${n}`);
+    for (const n of ['Banquet hall', 'Wedding lawn', 'Ganesh procession', 'Concert stage', 'Dandiya / Garba ground', 'Club']) assert(names.includes(n), `place list has ${n}`);
   }, timeout: 90000 },
 
   { name: 'design: the first design starts from an empty venue, never from the built-in rig; edits send only the AI design', async fn({ page, ev }) {
@@ -862,6 +908,81 @@ tests.push(
     // the built-in presets are exactly as they were
     const counts = await ev(async () => { const o = {}; for (const id of ['concert', 'club', 'dandiya']) o[id] = (await (await fetch(`rigs/${id}.json`)).json()).fixtures.length; return o; });
     eq(JSON.stringify(counts), JSON.stringify({ concert: 42, club: 38, dandiya: 28 }), 'built-in rigs unchanged');
+  }, timeout: 60000 },
+
+  { name: 'design: a new design is its own setup (built-in rigs stay as they were), survives a reload, and can be removed', async fn({ page, ev }) {
+    await ev(async () => { localStorage.removeItem('musync.ai.rigs'); await window.__musync.loadRigPreset('concert'); });
+    await page.keyboard.press('d');
+    await ask(page, 'A wedding reception for 250 guests in a banquet hall, keep it limited');
+    await waitPlans(page, 1);
+    const r = await ev(() => ({ preset: window.__musync.app.presetId, venue: window.__musync.app.rig.venue, saved: JSON.parse(localStorage.getItem('musync.ai.rigs') || '[]').length }));
+    eq(r.preset, 'ai', 'shown as an AI design'); eq(r.venue, 'hall', 'in the hall'); eq(r.saved, 1, 'saved as a setup of its own');
+    await ev(async () => { await window.__musync.loadRigPreset('concert'); });
+    eq(await ev(() => window.__musync.app.rig.fixtures.length), 42, 'the concert rig is exactly as it was');
+    await page.reload(); await page.waitForFunction(() => window.__musync?.app?.wal && !document.querySelector('#loader:not(.done)'));
+    await page.click('button[aria-controls="rigDrawer"]'); await page.waitForSelector('#rigDrawer.open');
+    await page.locator('#rigDrawer .opt', { hasText: 'Made with Design with AI' }).click(); await page.waitForTimeout(500);
+    const back = await ev(() => ({ preset: window.__musync.app.presetId, venue: window.__musync.app.rig.venue }));
+    eq(back.preset, 'ai', 'the saved design loads after a reload'); eq(back.venue, 'hall', 'with its venue');
+    await page.locator('#rigDrawer .opt-x').first().click({ force: true }); await page.waitForTimeout(500);
+    eq(await ev(() => JSON.parse(localStorage.getItem('musync.ai.rigs') || '[]').length), 0, 'removed');
+    eq(await ev(() => window.__musync.app.presetId), 'concert', 'removing the design on screen goes back to the concert rig');
+  }, timeout: 60000 },
+
+  { name: 'design: "Change this rig" edits a copy of a built-in rig and saves it as a new setup; the original is untouched', async fn({ page, ev }) {
+    const bodies = [];
+    await page.route('**/api/plan', async (route) => { bodies.push(/name="rig"/.test(route.request().postData() || '')); await route.continue(); });
+    await ev(async () => { localStorage.removeItem('musync.ai.rigs'); await window.__musync.loadRigPreset('concert'); });
+    await page.keyboard.press('d'); await page.waitForSelector('#aiDrawer.open');
+    assert(/Change .Concert/.test(await page.locator('#aiDrawer .ai-scope-b').nth(1).innerText()), 'the choice names the rig on screen');
+    eq(await page.locator('#aiDrawer .ai-scope-b').nth(0).getAttribute('aria-checked'), 'true', 'a new rig is the default over a built-in rig');
+    await page.locator('#aiDrawer .ai-scope-b').nth(1).click();
+    await ask(page, 'remove some lights');
+    await waitPlans(page, 1);
+    eq(bodies[0], true, 'the rig to change was sent');
+    const r = await ev(() => ({ n: window.__musync.app.rig.fixtures.length, preset: window.__musync.app.presetId, saved: JSON.parse(localStorage.getItem('musync.ai.rigs') || '[]').length }));
+    assert(r.n > 0 && r.n < 42, `the copy has fewer lights (${r.n})`); eq(r.preset, 'ai', 'shown as an AI design'); eq(r.saved, 1, 'saved as a new setup');
+    eq(await ev(async () => (await (await fetch('rigs/concert.json')).json()).fixtures.length), 42, 'the concert rig file is untouched');
+    await ev(async () => { await window.__musync.loadRigPreset('concert'); });
+    eq(await ev(() => window.__musync.app.rig.fixtures.length), 42, 'the concert preset still has all its lights');
+  }, timeout: 60000 },
+
+  { name: 'design: Stop cancels a running request, nothing changes, the message returns to the box, and the chat carries on', async fn({ page, ev }) {
+    await ev(async () => { localStorage.removeItem('musync.ai.rigs'); await window.__musync.loadRigPreset('concert'); });
+    await page.keyboard.press('d'); await page.waitForSelector('#aiDrawer.open');
+    await ask(page, 'slow: a garden wedding for 150 guests');
+    await page.waitForSelector('#aiDrawer .ai-send.stop');
+    await page.click('#aiDrawer .ai-send.stop');
+    await page.waitForSelector('#aiDrawer .ai-msg.stopped', { timeout: 6000 });
+    eq(await ev(() => window.__musync.app.presetId), 'concert', 'the rig on screen did not change');
+    assert((await page.inputValue('#aiDrawer .ai-text')).includes('garden wedding'), 'the message is back in the box');
+    eq(await page.locator('#aiDrawer .ai-send.stop').count(), 0, 'the send button is back');
+    await page.fill('#aiDrawer .ai-text', 'a garden wedding for 150 guests, keep it limited'); await page.press('#aiDrawer .ai-text', 'Enter');
+    await waitPlans(page, 1);
+    eq(await ev(() => window.__musync.app.presetId), 'ai', 'the next message works');
+  }, timeout: 60000 },
+
+  { name: 'design: a procession request gets the street procession scene, not a concert stage', async fn({ page, ev }) {
+    await ev(async () => { localStorage.removeItem('musync.ai.rigs'); await window.__musync.loadRigPreset('concert'); });
+    await page.keyboard.press('d'); await page.waitForSelector('#aiDrawer.open');
+    await ask(page, 'a ganesh visarjan procession with a tractor and a light trolley, about 30 lights');
+    await waitPlans(page, 1);
+    await page.waitForFunction(() => window.__musync.app.venue?.kind === 'procession', null, { timeout: 20000 });
+    const r = await ev(() => ({ venue: window.__musync.app.rig.venue, preset: window.__musync.app.presetId, n: window.__musync.app.rig.fixtures.length }));
+    eq(r.venue, 'procession', 'the procession venue'); eq(r.preset, 'ai', 'shown as an AI design'); assert(r.n > 5, `${r.n} lights`);
+    assert(/Street procession/.test(await page.locator('#aiDrawer .ai-meta').last().innerText()), 'the card names the scene');
+  }, timeout: 60000 },
+
+  { name: 'design: the pause button holds the show still while designing, and a new design does not restart it', async fn({ page, ev }) {
+    await ev(async () => { localStorage.removeItem('musync.ai.rigs'); await window.__musync.loadRigPreset('concert'); });
+    await page.keyboard.press('d'); await page.waitForSelector('#aiDrawer.open');
+    await ev(() => { window.__musync.actions.play(); });
+    await page.click('#aiDrawer .ai-quiet'); await page.waitForTimeout(300);
+    eq(await ev(() => window.__musync.app.playing), false, 'paused');
+    await ask(page, 'a garden wedding for 150 guests, keep it limited'); await waitPlans(page, 1);
+    eq(await ev(() => window.__musync.app.playing), false, 'a finished design does not restart the music');
+    await page.click('#aiDrawer .ai-quiet'); await page.waitForTimeout(300);
+    eq(await ev(() => window.__musync.app.playing), true, 'resumed');
   }, timeout: 60000 },
 
   { name: 'design: a vague first message gets one question with tap answers, nothing changes on screen, tapping continues', async fn({ page, ev }) {
