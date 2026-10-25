@@ -27,7 +27,7 @@ ${looks(COLOR_LOOKS)}
 FX (one-shots, via cue.fx on any layer incl. "all"): ${Object.entries(FX).map(([k, v]) => `${k} (${v})`).join('; ')}
 
 Param ranges: intensity/spread/size/width/density/phase 0-1, tilt -1..1 (on cyclic figures, tilt below 0 runs the figure backwards: the way to make two groups counter-rotate), speed = BEATS PER CYCLE (bigger = slower; 16 = a cycle every 4 bars), decay = seconds, rate = flashes/s (max 12), every = integer, seed = integer 0-99999 (a different version of dance and drift), prism = true on a move (beams of prism heads split into rays).
-Cue field group: left | right | odd | even | inner | outer | front | back (default: the whole layer).
+Cue field group: left | right | odd | even | inner | outer | front | back | pairA | pairB (default: the whole layer). pairA and pairB are the heads in pairs of two from left to right: pair 1, 3, 5 are A and pair 2, 4, 6 are B, so two pairs can answer each other.
 dim.direction: forward|reverse|bounce|out|in.  env: energy|low|mid|high.
 
 BUILT-IN PALETTES: ${Object.entries(PALETTES).map(([k, v]) => `${k} [${v.join(' ')}]`).join('; ')}
@@ -64,7 +64,7 @@ ${Object.entries(IMAGES).map(([k, v]) => `  ${k}: ${v}`).join('\n')}
 FIGURES the heads can perform (the whole unit moves as one shape): ${Object.entries(MOVE_LOOKS).map(([k, v]) => `${k}`).join(', ')}. Pick by the music: dhol / tabla / dholak / 808 (low and high onsets, rhythmic) suit dance, bounce, stairs, scissor, domino, carousel; sustained voice, harmonium, sitar, flute, violin and pads (mid band, melodic) suit drift, vocal, ribbon, lotus, curtain, peacock; synth arps, hats, shimmer (high band, airy) suit orbit, lissajous, ripple, scanline, helix; builds suit spiral, fan_open; whirling Sufi and garba rings suit carousel, lotus, helix, spin.
 
 Rules:
-- "phrases" must cover the whole song from 0 to the duration with no gaps, each 1 to 4 bars (a refrain is normally 2 or 4 bars), boundaries on bar start times. Roles: ${Object.keys(PHRASE_ROLES).join(', ')}. Give every refrain and tagline phrase a "motif" id (the same id each time that phrase returns, e.g. "hook"; a different motif id for a different recurring phrase). "gist" is a paraphrase of what is sung (max 10 words), never a lyric quote.
+- "phrases" must cover the whole song from 0 to the duration with no gaps, each 1 to 4 bars (a refrain is normally 2 or 4 bars), boundaries on bar start times. Roles: ${Object.keys(PHRASE_ROLES).join(', ')}. Give every refrain and tagline phrase a "motif" id (the same id each time that phrase returns, e.g. "hook"; a different motif id for a different recurring phrase). Do the same for any stanza line, answer or tune that comes back (the same melody over new words, a repeated antara line): give those a motif id too, so the lights repeat for them and the people dancing can learn the show. A silence is a phrase with role "silence"; add "dark": true only for the one or two biggest stops of the whole song (a loud phrase, then nothing): every other silence keeps a soft breathing colour, because silence is music too. "gist" is a paraphrase of what is sung (max 10 words), never a lyric quote.
 - "kind" must be one of: ${Object.keys(SECTION_KINDS).join(', ')}. Use "drop" only for the 2 or 3 real peaks of the whole song. Other loud sections are "chorus".
 - Sections must cover the whole song from 0 to the song's duration with no gaps, each at least 2 bars.
 - Do not quote lyrics. A "lyric" is a short paraphrase of what the section says or feels like (max 14 words). Never copy more than 4 words of a lyric line.
@@ -86,7 +86,7 @@ Reply with ONE JSON object and nothing else:
  "palettes": { "name": ["#rrggbb", ...] },
  "sections": [ { "start": sec, "end": sec, "kind": str, "label": str, "group": "A", "energy": 0-1, "mood": "2-4 words", "palette": name, "lyric": "paraphrase", "move": ["figure", "figure"], "idea": "one sentence: what the lights do here and why (which layer leads)" } ],
  "motifs": { "hook": { "name": "e.g. Mukhda", "gist": "what the refrain says", "role": "refrain" } },
- "phrases": [ { "start": sec, "end": sec, "role": "refrain|tagline|line|answer|lift|instrumental|silence", "motif": "id (refrain/tagline only)", "gist": "paraphrase", "image": "one of the image names", "energy": 0-1 } ],
+ "phrases": [ { "start": sec, "end": sec, "role": "refrain|tagline|line|answer|lift|instrumental|silence", "motif": "id (refrain, tagline and any line that returns)", "dark": true (silence only, rare), "gist": "paraphrase", "image": "one of the image names", "energy": 0-1 } ],
  "moments": [ { "t": sec, "what": "what happens in the music/lyric", "light": "what the rig should do" } ]
 }`;
 
@@ -116,11 +116,21 @@ Think of the layers as players in a band, each with a part that follows the musi
 - strobe / blinder = punctuation only. A single blinder hit on the hook's first beat means more than constant flashing.
 Not every layer plays all the time. Bring layers in over the song so the show grows: start with one or two, add as energy and story build, strip back on breaks, and save everything-at-once for the real peaks. The contrast is what makes a peak land.
 
+THE SCORE: WHO PLAYS WHAT (the order of importance)
+A song carries several parallel things at once. Rank them and give each to the right equipment; when the rig is small, the highest ranks win and the rest are dropped, so even one beam or one spot reads as a concert.
+1. The voice and the story (the lyric line, the hook, the tagline): beam and spot movement and the wash colour. This is always shown.
+2. The dancers' steps (when a video brief lists steps): the same step is always the same light (the step cues are added for you; do not fight them, and keep the figures around them calm).
+3. The rhythm (dhol, kick, claps): pixel, tube and matrix, then strobe and blinder on the biggest hits.
+4. The melody and harmony (strings, synth, flute): the slow colour and the shape of the movement.
+5. Texture and space (haze of the pads, the quiet between lines): a low glow, never black. A stop in the music is answered by a held colour that breathes; a full blackout is for the one or two biggest stops only (the bible's "dark" silences).
+How the big touring shows do it: one colour world per song (a song is a chapter with its own palette), the verses small and intimate (a spot or two and a soft wash), the pre-chorus climbing (one new layer every two bars), the chorus arriving as a reveal (everything lands on the downbeat, then holds), the bridge stripping back to a single shape so the last chorus is the biggest, and the same signature every time the hook returns so the crowd feels the song coming.
+Repeat on purpose: a stanza line or step that returns is lit the same way every time (the motif ids carry this). Let the later return add one thing, never change the shape.
+
 DESIGN RULES (the creator's taste)
 - Calm verses: slow movement (speed 16 or slower), one moving layer, colour changes per phrase.
 - Big looks (strobes, blinders, lasers, fast figures) only at the real peaks and the final chorus.
 - Repeats of the same group look related; the later one adds one more layer or a bolder colour.
-- Silence is a tool: where the bar table shows the beat dropping out, go dark or hold a single colour, then slam back in. Use fx "blackout" with "dur" for a stop, and fx "flash", "burst" or "spark" on the landing.
+- Silence is a tool: where the bar table shows the beat dropping out, hold a single low colour that breathes (wash and beams at 20 to 35 percent), then slam back in with fx "flash", "burst" or "spark" on the landing. Do not black the room out for every pause; fx "blackout" with "dur" (over a second) is for at most two stops in the whole song.
 - Follow the lyric's emotion with colour: heat, passion, defiance read as reds, ambers, hot pinks; tenderness as soft pinks and warm whites; swagger as hard contrast; devotion as gold. Use the director's palettes.
 - Use "follow" (env mid) on sustained vocal lines so the lights breathe with the singer; use low-band triggers for dhol/kick hits; use "alternate" or "dandiya_tap" for call-and-response only when the music really does that.
 - Strobes are an instrument, not a switch. Use dim look "strobe_seq" with a pattern (${Object.entries(STROBE_PATTERNS).map(([k]) => k).join(', ')}) locked to the beat: "double" or "gallop" to drive a refrain, "stutter" to climb into a drop, "burst" for a landing, "chase" or "split" to move the flash across the room.

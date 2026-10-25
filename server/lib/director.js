@@ -10,7 +10,14 @@ import { runClaude, extractJson } from './claude.js';
 import { findLyrics, cleanName } from './lyrics.js';
 import { biblePrompt, cuesPrompt, barTable, phraseLines, researchPrompt } from './brief.js';
 import { BIBLE_SYSTEM, CUES_SYSTEM, RESEARCH_SYSTEM, repairPrompt, mmss } from './prompts.js';
+import { measureVideo, makeSheets, watchVideo, barMotion, hitsOnBeat, videoBlock, VIDEO_RULES, VIDEO_CUE_RULES } from './video.js';
+import { stepCues } from './steps.js';
+import { DESIGN_SYSTEM, designPrompt, checkDesign, expandDesign, applyElevation } from './design.js';
+import { critic } from './critic.js';
 import { snapSections, cleanPalettes, cleanCues, cleanAccents, overlay, cleanPhrases, cleanMotifs } from './merge.js';
+
+// said once after the video block so the director cannot read more into a thin video than it holds
+const VIDEO_NOTE = (profile, dur) => (profile.movement === 'little' ? '\nNOTE: almost nothing moves in this picture (a lyric video or stills). Do not expect steps from it.' : '');
 
 export function decodeAudio(file) {
   const r = spawnSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 'f32le', '-ac', '1', '-ar', String(TARGET_SR), '-'], { maxBuffer: 1 << 30 });
@@ -35,7 +42,7 @@ async function askJson({ system, prompt, label, effort, cwd, signal, emit, stage
   }
 }
 
-export async function direct({ audioPath, filename, title, artist, style, lyricsText, notes, dir, signal, emit = () => {}, model }) {
+export async function direct({ audioPath, videoPath = null, filename, title, artist, style, lyricsText, notes, dir, signal, emit = () => {}, model }) {
   mkdirSync(dir, { recursive: true });
   const warnings = [];
   const warn = (w) => warnings.push(w);
@@ -87,10 +94,42 @@ export async function direct({ audioPath, filename, title, artist, style, lyrics
     emit({ stage: 'research', done: true, data: { found: research.length > 0, chars: research.length } });
   }
 
+  // ---- pass 0b: the music video (optional) ----------------------------------------------------
+  // Measure the picture (motion, cuts, step hits), let Claude read contact sheets of it, and hand both to the director.
+  // Any failure here only costs the video's evidence: the show is then made from the audio exactly as without a video.
+  let video = null, videoLog = [], videoInfo = null;
+  const vbars = () => (video ? barMotion(video.profile, barTable(a).bars, a.duration) : null); // recomputed if the tempo grid changes
+  if (videoPath && process.env.MUSYNC_VIDEO !== '0') {
+    emit({ stage: 'video', detail: 'Watching the video: dancers, steps and mood' });
+    try {
+      const profile = await measureVideo(videoPath, { signal });
+      emit({ stage: 'video', detail: 'Reading frames of the video', data: { movement: profile.movement, cuts: profile.cuts.length } });
+      const { sheets } = makeSheets(videoPath, dir, profile);
+      if (!sheets.length) throw new Error('no frames could be taken from it');
+      const seen = await watchVideo({ dir, sheets, profile, meta, research, signal, model, onText: (n) => emit({ stage: 'video', chars: n }) });
+      write(dir, 'video.json', { brief: seen.brief, profile: { duration: profile.duration, movement: profile.movement, cuts: profile.cuts, hits: profile.hits } });
+      videoLog = [{ label: 'video', ms: seen.ms, costUsd: seen.costUsd }];
+      const peaks = hitsOnBeat(profile, a.beats, 30);
+      video = {
+        text: videoBlock(seen.brief, profile, a.beats) + VIDEO_NOTE(profile, a.duration),
+        profile,
+        peaks: `MOVEMENT PEAKS IN THE VIDEO (time, strength; * = lands on a beat)\n${peaks.map((h) => `${mmss(h.t)}${h.onBeat ? '*' : ''} ${h.strength}`).join('  ') || '(none)'}`,
+        brief: seen.brief,
+      };
+      videoInfo = { usefulness: seen.brief.usefulness, summary: seen.brief.summary, scenes: seen.brief.scenes.length, steps: seen.brief.steps.map((x) => x.name), cast: seen.brief.cast.map((c) => `${c.role}: ${c.look}`), movement: profile.movement, cuts: profile.cuts.length, emotionArc: seen.brief.emotionArc };
+      emit({ stage: 'video', done: true, data: videoInfo });
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      warn(`The video could not be used (${String(e.message).slice(0, 110)}). The show was made from the audio, the words and what the director knows about the song.`);
+      emit({ stage: 'video', done: true, data: { failed: true } });
+    }
+    lap('video');
+  }
+
   // ---- pass 1: the bible -------------------------------------------------------------
   emit({ stage: 'bible', detail: 'The director is listening to the numbers and reading the words' });
   const bibleReply = await askJson({
-    system: BIBLE_SYSTEM, prompt: biblePrompt(a, meta, lyrics, research), label: 'bible', effort: process.env.MUSYNC_EFFORT_BIBLE || 'medium', cwd: dir, signal, emit, stage: 'bible', model,
+    system: BIBLE_SYSTEM + (video ? VIDEO_RULES : ''), prompt: biblePrompt(a, meta, lyrics, research, video && { ...video, bars: vbars() }), label: 'bible', effort: process.env.MUSYNC_EFFORT_BIBLE || 'medium', cwd: dir, signal, emit, stage: 'bible', model,
     stats: (txt) => ({ sections: (txt.match(/"kind"\s*:/g) || []).length }),
     validate(j) {
       const p = [];
@@ -135,9 +174,28 @@ export async function direct({ audioPath, filename, title, artist, style, lyrics
   const phraseText = phraseLines(baseline.phrases);
   const momentsText = (bible.moments || []).map((m) => `${mmss(m.t)}  ${m.what} -> ${m.light}`).join('\n') || '(none)';
   const cueCtx = { a, validPalettes, warn };
+  // the dancers' signature steps: one recipe of light per step, played at every return of it
+  // ---- pass 2a: the show designer (runs beside the cue sheet): opening, elevation and gestures the agent composes ----
+  emit({ stage: 'design', detail: 'Composing the opening, the climb and the signature steps' });
+  let design = null, designLog = [];
+  const designJob = askJson({
+    system: DESIGN_SYSTEM, prompt: designPrompt({ bible, sections, phraseText, momentsText, video, barText: barTable(a, vbars()).text, a }), label: 'design', effort: process.env.MUSYNC_EFFORT_DESIGN || 'medium', cwd: dir, signal, emit, stage: 'design', model,
+    stats: (txt) => ({ gestures: (txt.match(/"answers"\s*:/g) || []).length }),
+    validate: checkDesign,
+  }).then((r) => {
+    design = expandDesign(r.json, { a, phrases: baseline.phrases, validPalettes, warn });
+    designLog = r.log; write(dir, 'design.json', { ...r.json, played: design.plays });
+    emit({ stage: 'design', done: true, data: { concept: design.concept, plays: design.plays, levels: design.elevation.length } });
+  }).catch((e) => {
+    if (signal?.aborted) throw e;
+    warn(`The show designer could not run (${String(e.message).slice(0, 100)}), so the signature steps use simple stock shapes and the climb is the engine's own.`);
+    emit({ stage: 'design', done: true, data: { failed: true } });
+  });
+  const stepsFallback = () => (video?.brief ? stepCues(video.brief, a, baseline.phrases, validPalettes, warn) : []);
+  let stepsAt = [];
   let wal = null;
   const cueReply = await askJson({
-    system: CUES_SYSTEM, prompt: cuesPrompt({ ...bible, sections }, a, phraseText, momentsText, barTable(a).text), label: 'cues', effort: process.env.MUSYNC_EFFORT_CUES || 'low', cwd: dir, signal, emit, stage: 'cues', model,
+    system: CUES_SYSTEM + (video ? VIDEO_CUE_RULES : ''), prompt: cuesPrompt({ ...bible, sections }, a, phraseText, momentsText, barTable(a, vbars()).text, video?.peaks || ''), label: 'cues', effort: process.env.MUSYNC_EFFORT_CUES || 'low', cwd: dir, signal, emit, stage: 'cues', model,
     stats: (txt) => ({ cues: (txt.match(/"layer"\s*:/g) || []).length }),
     validate(j) {
       const p = [];
@@ -152,27 +210,35 @@ export async function direct({ audioPath, filename, title, artist, style, lyrics
   });
   function build(cues, accents) {
     const w = structuredClone(baseline);
-    w.cues = overlay(baseline.cues, cues, sections, a.duration);
+    w.palettes = { ...custom, ...(w.palettes || {}) }; // the designer's gestures may use a palette no section does
+    w.cues = overlay(baseline.cues, [...cues, ...stepsAt], sections, a.duration);
+    if (design?.elevation?.length) w.cues = applyElevation(w.cues, design.elevation).cues;
     w.accents = [...baseline.accents, ...accents].sort((x, y) => x.t - y.t);
     return w;
   }
+  await designJob;
+  stepsAt = design ? design.cues : stepsFallback();
   const cleanWarn = [];
   const finalCues = cleanCues(cueReply.json.cues, { ...cueCtx, warn: (w) => cleanWarn.push(w) });
   wal = build(finalCues, cleanAccents(cueReply.json.accents, { a, warn: (w) => cleanWarn.push(w) }));
   if (cleanWarn.length) warn(`${cleanWarn.length} detail${cleanWarn.length > 1 ? 's' : ''} in the cue sheet were adjusted to fit the WAL format (e.g. ${cleanWarn[0]})`);
   if (cueReply.json.notes) wal.meta.notes = `${wal.meta.notes || ''}\n\nLighting notes: ${String(cueReply.json.notes).slice(0, 1500)}`.trim();
   lap('cues');
+  const review = critic(wal, a.duration);
+  review.notes.forEach(warn);
+  review.steps = stepsAt.filter((c) => c.layer === 'beam').length;
+  if (design) review.design = { concept: design.concept, opening: design.opening, plays: design.plays, levels: design.elevation };
 
   emit({ stage: 'validate', detail: 'Checking the show against the format' });
   const v = validateWal(wal);
   if (!v.ok) throw new Error(`The final WAL did not validate: ${v.errors.slice(0, 3).join('; ')}`);
   warnings.push(...v.warnings);
   write(dir, 'song.wal.json', wal);
-  const cost = [...researchLog, ...bibleReply.log, ...cueReply.log].reduce((s, l) => s + (l.costUsd || 0), 0);
+  const cost = [...researchLog, ...videoLog, ...bibleReply.log, ...designLog, ...cueReply.log].reduce((s, l) => s + (l.costUsd || 0), 0);
   const report = {
     title: wal.meta.title, artist: wal.meta.artist || '', bpm: wal.meta.bpm, duration: wal.meta.duration, styles: wal.meta.styles || [], mood: wal.meta.mood || '', language: wal.meta.language || '', phrases: wal.phrases?.length || 0, sections: wal.sections.length, cues: wal.cues.length, accents: wal.accents.length,
     understanding: u, researched: research.length > 0, moments: bible.moments || [], lyrics: lyrics ? { source: lyrics.source, track: lyrics.track, artist: lyrics.artist } : null,
-    tempoNote: a.tempoNote, warnings, timings: { ...timings, totalMs: Date.now() - t0 }, claude: [...researchLog, ...bibleReply.log, ...cueReply.log], costUsd: Math.round(cost * 1000) / 1000, ext: extname(filename), sha256: wal.meta.audio?.sha256 || null,
+    tempoNote: a.tempoNote, warnings, timings: { ...timings, totalMs: Date.now() - t0 }, claude: [...researchLog, ...videoLog, ...bibleReply.log, ...designLog, ...cueReply.log], video: videoInfo, critic: review, costUsd: Math.round(cost * 1000) / 1000, ext: extname(filename), sha256: wal.meta.audio?.sha256 || null,
   };
   write(dir, 'report.json', report);
   emit({ stage: 'done', done: true, data: report });

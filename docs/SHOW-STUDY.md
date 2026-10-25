@@ -52,7 +52,7 @@ from `pulse` looks on whichever layers happen to carry one. Two of three kicks d
 ## E. Meaning (words, lines, story)
 
 1. **No song has any imagery except the hand-scored pilot.** `phrase.image` was added to the director prompt at 17:48 on 24 Oct, after every stored show was made (last at 15:40), so 14 of 15 shows have 0 images. Only Aaj Ki Raat (hand-scored) has 13.
-2. **Only 2 of 15 songs have lyrics** (Rang De Lal, Dai Dai). For the rest the director wrote phrases "from the bar table alone" (Illuminati's own notes say so). The gists are generic ("Rap opens, introducing the character"), so nothing can answer the words.
+2. **Only 2 of 15 songs have lyrics** (two of them). For the rest the director wrote phrases "from the bar table alone" (Illuminati's own notes say so). The gists are generic ("Rap opens, introducing the character"), so nothing can answer the words.
 3. **Choreography has no input for meaning.** Figures are chosen from genre + loudness + rhythmic/melodic/airy + recency. Meaning enters only through `image`, so with no images a ballad and an anthem of the same loudness get the same grammar.
 4. **Palettes are per section, not per idea.** 3 to 5 palettes per song; one hue takes 41 % of lit time on average (Illuminati's first 35 s are almost all gold although its brief calls for violet, red and cyan accents).
 
@@ -76,5 +76,5 @@ from `pulse` looks on whichever layers happen to carry one. Two of three kicks d
 
 - Choreography v4: beam figures hold for up to 3 lines of a stanza (colour and other layers still move per line); half the heads rest through quieter lines; every long line ends on a beat of dark; a dark beat before each refrain block; the slowest figures (drift, curtain, orbit, ribbon, lotus, scanline, helix, lissajous) run about twice as fast; `kick` beam dim favoured. All 21 stored shows remastered (old ones kept as `.v1.json`).
 - Measured on the 28-fixture rig: heads dark 16 % of the time (study `beamDark`), strong kicks answered by the beams 36 % → 47 %. Whole-rig contrast is still ~2× because washes, pixels and tubes never go dark: next target.
-- Director re-run (`scripts/rerun-director.mjs`): the dev server had been started before the imagery prompt was written, so it was still using the old prompt. Restarted; Rang De Lal now carries 12 distinct images. Songs without lyrics may still get none.
+- Director re-run (`scripts/rerun-director.mjs`): the dev server had been started before the imagery prompt was written, so it was still using the old prompt. Restarted; the first song now carries 12 distinct images. Songs without lyrics may still get none.
 - `scripts/study.mjs` now also reports beam-only onset response, range and dark time.

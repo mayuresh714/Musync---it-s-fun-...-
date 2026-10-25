@@ -176,9 +176,10 @@ export function cleanPhrases(raw, a, sections, warn) {
     const p = list[i];
     const role = PHRASE_ROLES[p.role] ? p.role : (warn(`phrase ${i + 1}: unknown role "${p.role}" -> line`), 'line');
     const ph = { t: r3(t), until: r3(until), role };
-    if (p.motif && (role === 'refrain' || role === 'tagline')) { ph.motif = String(p.motif).slice(0, 24).replace(/\s+/g, '-'); motifs.add(ph.motif); }
+    if (p.motif && role !== 'silence') { ph.motif = String(p.motif).slice(0, 24).replace(/\s+/g, '-'); motifs.add(ph.motif); }
     if (typeof p.gist === 'string' && p.gist.trim()) ph.gist = p.gist.trim().split(/\s+/).slice(0, 14).join(' ');
     if (IMAGES[p.image]) ph.image = p.image;
+    if (role === 'silence' && p.dark === true) ph.dark = true;
     const sec = sections.find((s) => ph.t >= s.start - 1e-3 && ph.t < s.end - 1e-3);
     ph.energy = Math.max(0, Math.min(1, num(p.energy) ?? sec?.energy ?? 0.5));
     out.push(ph);

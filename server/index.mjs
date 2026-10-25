@@ -13,6 +13,7 @@ import { direct as realDirect } from './lib/director.js';
 import { fakeDirect } from './lib/fake-director.js';
 import { directCode } from './lib/codegen.js';
 import { fetchAudio, ytdlpAvailable, videoKey } from './lib/youtube.js';
+import { VIDEO_TYPES, extractAudio, cleanVideoFiles } from './lib/video.js';
 import { claudeAvailable } from './lib/claude.js';
 import { design as realDesign, IMAGE_TYPES } from './lib/planner.js';
 import { fakeDesign } from './lib/fake-planner.js';
@@ -47,7 +48,7 @@ function entryOf(job) {
   return {
     id, title: job.meta.title || r.title || job.meta.filename, artist: job.meta.artist || r.artist || r.understanding?.artist || '',
     bpm: r.bpm, duration: r.duration, styles: r.styles || r.understanding?.styles || [], mood: r.mood || r.understanding?.mood || '', language: r.language || r.understanding?.language || '',
-    created: job.meta.created, sha256: r.sha256 || null, source: 'ai', director: true, cost: r.costUsd, engine: r.engine || job.meta.engine || 'ai', videoKey: job.meta.videoKey || null,
+    created: job.meta.created, sha256: r.sha256 || null, source: 'ai', director: true, cost: r.costUsd, engine: r.engine || job.meta.engine || 'ai', video: !!r.video, videoKey: job.meta.videoKey || null,
     wal: `/api/jobs/${id}/wal`, audio: `/api/jobs/${id}/audio`,
   };
 }
@@ -71,8 +72,9 @@ function startJob(job, input) {
     try {
       const signal = job.controller.signal;
       if (input.url) { // a link: fetch the audio first, then carry on exactly as for an upload
-        const got = await fetchAudio(input.url, job.dir, { signal, emit: (e) => emitTo(job, e) });
+        const got = await fetchAudio(input.url, job.dir, { signal, emit: (e) => emitTo(job, e), video: input.watch });
         input.audioPath = join(job.dir, got.file);
+        if (got.video) { input.videoPath = join(job.dir, got.video); job.meta.video = true; }
         input.filename = safeName(got.file);
         input.title ||= got.title || undefined;
         input.artist ||= got.artist || undefined;
@@ -80,6 +82,7 @@ function startJob(job, input) {
         writeFileSync(join(job.dir, 'meta.json'), JSON.stringify(job.meta, null, 1));
       }
       const run = process.env.MUSYNC_FAKE_DIRECTOR ? fakeDirect : job.meta.engine === 'code' ? directCode : direct;
+      if (job.meta.engine === 'code' || input.watch === false) input.videoPath = null; // only the AI director reads pictures
       const { report } = await run({ ...input, engine: job.meta.engine, dir: job.dir, signal, emit: (e) => emitTo(job, e) });
       job.status = 'done'; job.report = report; indexJob(job);
       const old = job.meta.replaces;
@@ -90,6 +93,7 @@ function startJob(job, input) {
       emitTo(job, { stage: 'error', error: job.error });
       writeFileSync(join(job.dir, 'error.txt'), String(e.stack || e));
     }
+    cleanVideoFiles(job.dir); // the picture was only read; it is not kept
     for (const send of job.listeners) send({ stage: 'end' });
   });
 }
@@ -137,7 +141,7 @@ const routes = [
     const file = fd.get('file');
     const id = randomBytes(8).toString('hex');
     const dir = join(DATA, id);
-    let audioName = null, hash = null, key = null, bytes = null, ext = null, replaces = null;
+    let audioName = null, videoName = null, hash = null, key = null, bytes = null, ext = null, replaces = null;
     if (url) {
       key = videoKey(url);
       if (!key) return fail(res, 400, 'That is not a YouTube video link. Paste a youtube.com or youtu.be link to a single video.');
@@ -151,24 +155,32 @@ const routes = [
         else return json(res, 200, { id: dup.id, duplicate: true, engine: dup.engine, title: dup.title || 'this video' });
       }
     } else {
-      if (!file || typeof file === 'string' || !file.size) return fail(res, 400, 'No audio file or link in the request.');
+      if (!file || typeof file === 'string' || !file.size) return fail(res, 400, 'No audio, video or link in the request.');
       ext = (extname(file.name || '').toLowerCase() || '.wav');
-      if (!AUDIO_TYPES[ext]) return fail(res, 400, `${ext} is not a supported audio type (use wav, mp3, m4a, aac, ogg or flac).`);
+      const isVideo = !!VIDEO_TYPES[ext];
+      if (!AUDIO_TYPES[ext] && !isVideo) return fail(res, 400, `${ext} is not a supported type (audio: wav, mp3, m4a, aac, ogg, flac; video: mp4, mov, m4v, webm, mkv).`);
       bytes = Buffer.from(await file.arrayBuffer());
+      if (isVideo) { // keep the picture for the director, and take the sound out of it so both share one clock
+        mkdirSync(dir, { recursive: true });
+        videoName = `video${ext}`;
+        writeFileSync(join(dir, videoName), bytes);
+        try { extractAudio(join(dir, videoName), join(dir, 'audio.m4a')); } catch (e) { rmSync(dir, { recursive: true, force: true }); return fail(res, 400, e.message); }
+        bytes = readFileSync(join(dir, 'audio.m4a')); ext = '.m4a';
+      }
       hash = sha256Of(bytes);
       const dup = [...library.values()].find((e) => e.sha256 === hash);
       if (dup) {
         if (field(fd, 'replace') === dup.id || (engine === 'ai' && dup.engine === 'code')) replaces = dup.id;
-        else return json(res, 200, { id: dup.id, duplicate: true, engine: dup.engine, title: dup.title });
+        else { if (isVideo) rmSync(dir, { recursive: true, force: true }); return json(res, 200, { id: dup.id, duplicate: true, engine: dup.engine, title: dup.title }); }
       }
     }
     mkdirSync(dir, { recursive: true });
     if (bytes) { audioName = `audio${ext}`; writeFileSync(join(dir, audioName), bytes); }
-    const meta = { id, filename: bytes ? safeName(file.name) : (url || '').slice(0, 120), title: field(fd, 'title') || (replaces && library.get(replaces)?.title) || '', artist: field(fd, 'artist') || (replaces && library.get(replaces)?.artist) || '', style: field(fd, 'style'), notes: field(fd, 'notes'), engine, created: new Date().toISOString(), audio: audioName, ...(replaces ? { replaces } : {}), ...(url ? { url, videoKey: key } : {}) };
+    const meta = { id, filename: bytes ? safeName(file.name) : (url || '').slice(0, 120), title: field(fd, 'title') || (replaces && library.get(replaces)?.title) || '', artist: field(fd, 'artist') || (replaces && library.get(replaces)?.artist) || '', style: field(fd, 'style'), notes: field(fd, 'notes'), engine, created: new Date().toISOString(), audio: audioName, ...(videoName ? { video: true } : {}), ...(replaces ? { replaces } : {}), ...(url ? { url, videoKey: key } : {}) };
     writeFileSync(join(dir, 'meta.json'), JSON.stringify(meta, null, 1));
     const job = { id, dir, meta, status: 'queued', events: [], listeners: new Set(), controller: new AbortController() };
     jobs.set(id, job);
-    startJob(job, { audioPath: audioName && join(dir, audioName), filename: meta.filename, title: meta.title, artist: meta.artist, style: meta.style, notes: meta.notes, lyricsText: field(fd, 'lyrics'), url });
+    startJob(job, { audioPath: audioName && join(dir, audioName), filename: meta.filename, title: meta.title, artist: meta.artist, style: meta.style, notes: meta.notes, lyricsText: field(fd, 'lyrics'), url, videoPath: videoName && join(dir, videoName), watch: engine === 'ai' && field(fd, 'video') !== 'off' });
     json(res, 202, { id, ...(replaces ? { replaces } : {}) });
   }],
 
@@ -345,14 +357,23 @@ routes.push(
     const job = { id, sid, status: 'queued', stage: 'queued', detail: 'Waiting for its turn', controller: new AbortController() };
     planJobs.set(id, job);
     planQueue = planQueue.then(async () => {
+      if (job.status === 'cancelled') return;
       job.status = 'running';
       try {
         const run = fake ? fakeDesign : realDesign;
         const out = await run({ dir, message, rig, newImages: saved, signal: job.controller.signal, emit: (e) => { if (e.stage) job.stage = e.stage; if (e.detail) job.detail = e.detail; if (e.chars != null) job.chars = e.chars; } });
+        if (job.status === 'cancelled') return;
         job.result = { ...out.plan, warnings: out.warnings, sid, photos: saved.length }; job.status = 'done'; job.stage = 'done';
-      } catch (e) { job.status = 'error'; job.error = e.message; job.stage = 'error'; }
+      } catch (e) { if (job.status === 'cancelled') return; job.status = 'error'; job.error = e.message; job.stage = 'error'; }
     });
     json(res, 202, { id, sid });
+  }],
+  // stop a design that is still running: the model call is killed, nothing is applied, and the chat is free at once
+  ['DELETE', /^\/api\/plan\/([a-f0-9]{16})$/, (req, res, [id]) => {
+    const j = planJobs.get(id);
+    if (!j) return fail(res, 404, 'Unknown request.');
+    if (['queued', 'running'].includes(j.status)) { j.status = 'cancelled'; j.stage = 'cancelled'; j.controller.abort(); }
+    json(res, 200, { id, status: j.status });
   }],
   ['GET', /^\/api\/plan\/([a-f0-9]{16})$/, (req, res, [id]) => {
     const j = planJobs.get(id);

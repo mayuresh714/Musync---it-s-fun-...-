@@ -43,7 +43,7 @@ export async function findLyrics({ filename, title, artist, duration, signal }) 
     for (const r of results) {
       if (seen.has(r.id)) continue; seen.add(r.id);
       if (r.instrumental || !(r.plainLyrics || r.syncedLyrics)) continue;
-      // the track name must appear in what we know about the file (e.g. "Rang De Lal" in the file name)
+      // the track name must appear in what we know about the file (e.g. the song name in the file name)
       const name = norm(String(r.trackName || '').replace(/\(.*?\)/g, ''));
       const nameWords = words_(String(r.trackName || '').replace(/\(.*?\)/g, ''));
       if (name.length < 3 || !(haystack.includes(name) || (nameWords.length >= 2 && nameWords.every((w) => hayWords.has(w))))) continue;
