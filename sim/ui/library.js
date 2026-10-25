@@ -310,12 +310,12 @@ export function initLibrary({ lib, onb, actions, getState }) {
   // ── add tab ───────────────────────────────────────────────────────────
   function buildAdd() {
     dom.banner = el('div', { class: 'banner', hidden: true });
-    dom.file = el('input', { type: 'file', multiple: true, accept: 'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac', hidden: true, onchange: (e) => { addFiles([...e.target.files]); e.target.value = ''; } });
+    dom.file = el('input', { type: 'file', multiple: true, accept: 'audio/*,video/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.mov,.m4v,.webm,.mkv', hidden: true, onchange: (e) => { addFiles([...e.target.files]); e.target.value = ''; } });
     dom.pick = el('button', { class: 'dropbig', onclick: () => dom.file.click(),
-      html: `${icon('upload', 26)}<b>Drop audio files here, or choose files</b><small>wav · mp3 · m4a · flac · ogg &nbsp;·&nbsp; add as many as you like; the director works through them one at a time (about 90 seconds each)</small>` });
+      html: `${icon('upload', 26)}<b>Drop songs or music videos here, or choose files</b><small>mp3 · wav · m4a · flac · ogg · mp4 · mov · webm &nbsp;·&nbsp; add as many as you like; the director works through them one at a time (about 90 seconds each)</small>` });
     ['dragenter', 'dragover'].forEach((t) => dom.pick.addEventListener(t, (e) => { e.preventDefault(); e.stopPropagation(); dom.pick.classList.add('over'); }));
     ['dragleave', 'drop'].forEach((t) => dom.pick.addEventListener(t, (e) => { e.preventDefault(); e.stopPropagation(); dom.pick.classList.remove('over'); if (t === 'drop') addFiles([...e.dataTransfer.files]); }));
-    dom.link = el('input', { class: 'input', type: 'url', placeholder: 'Paste a YouTube link and press Enter (one video per line works too)', 'aria-label': 'YouTube link',
+    dom.link = el('input', { class: 'input', type: 'url', placeholder: 'Paste a YouTube link', 'aria-label': 'YouTube link',
       onkeydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); addLinkNow(); } }, onpaste: () => setTimeout(addLinkNow, 0) });
     const linkRow = el('div', { class: 'linkrow' }, el('span', { class: 'lk-ico', html: icon('link', 16) }), dom.link, el('button', { class: 'btn', text: 'Add link', onclick: addLinkNow }));
     dom.engine = el('div', { class: 'seg engine', role: 'radiogroup', 'aria-label': 'How to make the show' });
@@ -326,7 +326,10 @@ export function initLibrary({ lib, onb, actions, getState }) {
     dom.occasion = el('select', { class: 'input', 'aria-label': 'Occasion' }, ...OCCASIONS.map(([v, l]) => el('option', { value: v, text: l })));
     dom.artistAll = el('input', { class: 'input', placeholder: 'Same artist for all (optional)', 'aria-label': 'Artist for all songs' });
     dom.engineNote = el('small', { class: 'engine-note', 'aria-live': 'polite' });
-    const engineRow = el('div', { class: 'field' }, el('span', { text: 'Method' }), dom.engine, dom.engineNote);
+    dom.watch = el('button', { class: 'lk-toggle', role: 'switch', 'aria-checked': 'true', 'aria-label': 'Watch the video',
+      onclick: () => { dom.watch.setAttribute('aria-checked', String(dom.watch.getAttribute('aria-checked') !== 'true')); } },
+      el('span', {}, el('b', { text: 'Watch the video' }), el('small', { text: 'For a link or a video file: the AI studies the dancers, their steps and the mood, so the lights can answer them' })), el('i', { class: 'sw-track' }));
+    const engineRow = el('div', { class: 'field' }, el('span', { text: 'Method' }), dom.engine, dom.engineNote, dom.watch);
     const opts = el('div', { class: 'add-opts' }, el('label', { class: 'field' }, el('span', { text: 'Occasion' }), dom.occasion), el('label', { class: 'field' }, el('span', { text: 'Artist' }), dom.artistAll));
     dom.items = el('div', { class: 'aitems', role: 'list', 'aria-label': 'Songs to add' });
     dom.clearBtn = el('button', { class: 'btn ghost', text: 'Clear finished', onclick: () => onb.clearFinished() });
@@ -345,11 +348,12 @@ export function initLibrary({ lib, onb, actions, getState }) {
   }
 
   let engine = (() => { try { return localStorage.getItem('musync.engine'); } catch { return null; } })();
-  const formNow = () => ({ style: dom.occasion.value, artist: dom.artistAll.value, engine: engineNow() });
+  const formNow = () => ({ style: dom.occasion.value, artist: dom.artistAll.value, engine: engineNow(), video: dom.watch?.getAttribute('aria-checked') === 'false' ? 'off' : '' });
   const engineNow = () => engine || (onb.state.backend?.claude ? 'ai' : 'code');
   function setEngine(id) { engine = id; try { localStorage.setItem('musync.engine', id); } catch {} renderEngine(); }
   function renderEngine() {
     if (!dom.engine) return;
+    if (dom.watch) dom.watch.hidden = engineNow() !== 'ai'; // only the AI director reads pictures
     if (dom.engineNote) dom.engineNote.textContent = engineNow() === 'ai' ? 'Claude reads the lyrics and understands the song. About 2 minutes each.' : 'Follows the sound and repeats. Fast and free, about 10 seconds each.';
     for (const b of dom.engine.children) { const on = b.dataset.e === engineNow(); b.setAttribute('aria-checked', String(on)); b.classList.toggle('on', on); b.tabIndex = on ? 0 : -1; }
     requestAnimationFrame(() => dom.placeEngine?.());

@@ -1,10 +1,10 @@
 // Adding songs at scale: pick or drop many audio files, send them to the backend queue (the Claude director
 // works through them one at a time), and follow every job until it is in the library. No DOM here.
-const AUDIO = /\.(mp3|wav|m4a|aac|ogg|flac)$/i;
-const STAGES = ['queued', 'download', 'decode', 'analyze', 'lyrics', 'research', 'bible', 'cues', 'validate', 'done'];
-const STAGE_TEXT = { queued: 'Waiting for its turn', download: 'Downloading the audio', decode: 'Reading the audio', analyze: 'Measuring tempo and beats', lyrics: 'Looking up the lyrics', research: 'Researching the song and its culture', bible: 'Understanding the song', cues: 'Writing the cue sheet', validate: 'Checking the show', done: 'Ready' };
+const AUDIO = /\.(mp3|wav|m4a|aac|ogg|flac|mp4|mov|m4v|webm|mkv)$/i; // sound files, or videos (the sound is taken from them and the picture is watched)
+const STAGES = ['queued', 'download', 'decode', 'analyze', 'lyrics', 'research', 'video', 'bible', 'design', 'cues', 'validate', 'done'];
+const STAGE_TEXT = { queued: 'Waiting for its turn', download: 'Downloading the audio', decode: 'Reading the audio', analyze: 'Measuring tempo and beats', lyrics: 'Looking up the lyrics', research: 'Researching the song and its culture', video: 'Watching the video: dancers, steps and mood', bible: 'Understanding the song', design: 'Composing the opening, the climb and the signature steps', cues: 'Writing the cue sheet', validate: 'Checking the show', done: 'Ready' };
 
-// "Rang_De_Lal_Oye_Oye_Lyrical_Dhurandhar_Shashwat.wav" -> "Rang De Lal Oye Oye Lyrical Dhurandhar Shashwat"
+// "Some_Song_Name_Lyrical_Artist_Name.wav" -> "Some Song Name Lyrical Artist Name"
 export const prettyName = (f) => f.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').replace(/\s*\((official|lyric|lyrical|audio|video)[^)]*\)/gi, '').replace(/\s+/g, ' ').trim();
 
 export function createOnboarder({ onChange, onSongsChanged }) {
@@ -28,7 +28,7 @@ export function createOnboarder({ onChange, onSongsChanged }) {
   function add(files) {
     let added = 0, skipped = 0;
     for (const f of files) {
-      if (!AUDIO.test(f.name) && !f.type?.startsWith('audio/')) { skipped++; continue; }
+      if (!AUDIO.test(f.name) && !f.type?.startsWith('audio/') && !f.type?.startsWith('video/')) { skipped++; continue; }
       if (S.items.some((i) => i.file && i.file.name === f.name && i.file.size === f.size && i.status !== 'error')) { skipped++; continue; }
       S.items.push({ key: ++S.seq, file: f, name: prettyName(f.name), size: f.size, status: 'ready', stage: null, detail: '', error: null, jobId: null, position: 0 });
       added++;

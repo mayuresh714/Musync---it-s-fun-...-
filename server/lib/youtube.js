@@ -3,6 +3,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { extractAudio } from './video.js';
 
 const HOSTS = /^(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be)$/i;
 export const MAX_SECONDS = 25 * 60;
@@ -49,8 +50,9 @@ const friendly = (e) => (/Private video|members-only/i.test(e) ? 'That video is 
   : /unavailable|not available|removed/i.test(e) ? 'That video is unavailable.' : /HTTP Error 429|Too Many/i.test(e) ? 'YouTube is rate-limiting this computer. Try again in a few minutes.'
   : `yt-dlp could not fetch it: ${String(e).trim().split('\n').pop().slice(0, 200)}`);
 
-// -> { file, title, artist, duration }
-export async function fetchAudio(url, dir, { signal, emit = () => {} } = {}) {
+// -> { file, video?, title, artist, duration }. With `video`, the video is fetched (480p at most; the picture is only read, never kept)
+// and the audio is taken from it, so both share one clock; if the video cannot be had, the audio alone is fetched as before.
+export async function fetchAudio(url, dir, { signal, emit = () => {}, video = false } = {}) {
   if (process.env.MUSYNC_FAKE_YTDLP) { // test seam: a short silent track, no network
     const n = 4410 + Math.floor(Math.random() * 1000), b = Buffer.alloc(44 + n * 2);
     b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(14700, 24); b.writeUInt32LE(29400, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(n * 2, 40);
@@ -61,10 +63,23 @@ export async function fetchAudio(url, dir, { signal, emit = () => {} } = {}) {
   const info = JSON.parse(await ytdlp(['--no-playlist', '--no-warnings', '--dump-single-json', '--', url], { signal }));
   if (info.is_live) throw new Error('That is a live stream; use Live mode in the simulator instead.');
   if (info.duration > MAX_SECONDS) throw new Error(`That video is ${Math.round(info.duration / 60)} minutes long; the limit is ${MAX_SECONDS / 60}.`);
+  const artist = (info.artist || info.creator || info.uploader || '').replace(/ - Topic$/, '');
+  if (video) {
+    emit({ stage: 'download', detail: `Downloading the video (${Math.round(info.duration / 60 * 10) / 10} min)` });
+    try {
+      await ytdlp(['--no-playlist', '--no-warnings', '-f', 'bv*[height<=480]+ba/b[height<=480]/b', '--merge-output-format', 'mp4', '-o', join(dir, 'video.%(ext)s'), '--', url], { signal });
+      const v = readdirSync(dir).find((f) => /^video\.(mp4|mkv|webm|mov)$/.test(f));
+      if (!v) throw new Error('no video file was produced');
+      extractAudio(join(dir, v), join(dir, 'audio.m4a'));
+      return { file: 'audio.m4a', video: v, title: info.track || info.title || '', artist, duration: info.duration };
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      emit({ stage: 'download', detail: 'The video could not be fetched, using the audio only' });
+    }
+  }
   emit({ stage: 'download', detail: `Downloading the audio (${Math.round(info.duration / 60 * 10) / 10} min)` });
   await ytdlp(['--no-playlist', '--no-warnings', '-f', 'bestaudio', '-x', '--audio-format', 'mp3', '--audio-quality', '0', '-o', join(dir, 'audio.%(ext)s'), '--', url], { signal });
   const file = readdirSync(dir).find((f) => /^audio\.(mp3|m4a|opus|wav|webm|ogg)$/.test(f));
   if (!file) throw new Error('The download finished but no audio file was produced.');
-  const artist = (info.artist || info.creator || info.uploader || '').replace(/ - Topic$/, '');
   return { file, title: info.track || info.title || '', artist, duration: info.duration };
 }

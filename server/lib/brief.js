@@ -3,13 +3,14 @@ import { barProfile } from '../../core/analysis/grid.js';
 import { stanzas } from './lyrics.js';
 import { mmss } from './prompts.js';
 
-export function barTable(a) {
+// vm (optional): per-bar video movement { m 0-9, cuts } from the music video; adds the v and c columns
+export function barTable(a, vm = null) {
   const bars = barProfile(a);
-  const lines = ['bar  start   E L M H  ons/s'];
+  const lines = [`bar  start   E L M H  ons/s${vm ? '  v c' : ''}`];
   let prev = null;
-  for (const b of bars) {
+  for (const [i, b] of bars.entries()) {
     const mark = prev ? (b.e - prev.e >= 3 ? ' ^' : prev.e - b.e >= 3 ? ' v' : '') : '';
-    lines.push(`${String(b.n).padStart(3)}  ${mmss(b.t).padStart(6)}  ${b.e} ${b.l} ${b.m} ${b.h}  ${b.o.toFixed(1).padStart(4)}${mark}`);
+    lines.push(`${String(b.n).padStart(3)}  ${mmss(b.t).padStart(6)}  ${b.e} ${b.l} ${b.m} ${b.h}  ${b.o.toFixed(1).padStart(4)}${vm?.[i] ? `  ${vm[i].m} ${vm[i].cuts || '.'}` : ''}${mark}`);
     prev = b;
   }
   return { text: lines.join('\n'), bars };
@@ -43,17 +44,17 @@ Stanzas are numbered so you can reason about form: repeated stanzas are the hook
 ${body.slice(0, 7000)}`;
 }
 
-export function biblePrompt(a, meta, lyrics, research = '') {
-  const { text } = barTable(a);
+export function biblePrompt(a, meta, lyrics, research = '', video = null) {
+  const { text } = barTable(a, video?.bars);
   return `${songFacts(a, meta, lyrics)}
-${research ? `\nRESEARCH DOSSIER (what a researcher found about the song and its culture; background, not measurement)\n${research.slice(0, 6000)}\n` : ''}
+${research ? `\nRESEARCH DOSSIER (what a researcher found about the song and its culture; background, not measurement)\n${research.slice(0, 6000)}\n` : ''}${video ? `\n${video.text}\n` : ''}
 BAR TABLE (measured from the recording; start = bar start time. E = overall energy, L/M/H = low, mid, high band level, all 0-9 relative to this song's own loudest bars; ons/s = note onsets per second; ^ / v = energy jumps up / down by 3+ vs the previous bar. Mid-band level high with strong onsets usually means the voice or lead is present.)
 ${text}
 
 Write the director's bible JSON now.`;
 }
 
-export function cuesPrompt(bible, a, phraseText, momentsText, barText) {
+export function cuesPrompt(bible, a, phraseText, momentsText, barText, videoText = '') {
   return `DIRECTOR'S BIBLE
 ${JSON.stringify(bible.understanding, null, 1)}
 
@@ -73,7 +74,7 @@ ${phraseText}
 
 BAR TABLE (same as the director read)
 ${barText}
-
+${videoText ? `\n${videoText}\n` : ''}
 Write the cue sheet JSON now.`;
 }
 

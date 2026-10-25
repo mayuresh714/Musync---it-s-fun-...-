@@ -4,7 +4,7 @@ import { el, modal, setStyleVar, setText, segIndicator } from './kit.js';
 import { STYLES } from '../../core/wal/vocab.js';
 
 const STEPS = [['decode', 'Reading the audio'], ['features', 'Measuring frequencies and energy'], ['rhythm', 'Finding tempo, beats and bars'], ['structure', 'Mapping sections: verse, hook, drop'], ['accents', 'Spotting drops, hits and silences']];
-const AI_STEPS = [['decode', 'Reading the audio'], ['analyze', 'Measuring tempo, beats, energy and bands'], ['lyrics', 'Finding the lyrics'], ['research', 'Researching the song, its genre and its culture'], ['bible', 'The director reads the song and its words'], ['cues', 'Writing the cue sheet, layer by layer'], ['validate', 'Checking the show against the format']];
+const AI_STEPS = [['decode', 'Reading the audio'], ['analyze', 'Measuring tempo, beats, energy and bands'], ['lyrics', 'Finding the lyrics'], ['research', 'Researching the song, its genre and its culture'], ['video', 'Watching the video: dancers, steps and mood'], ['bible', 'The director reads the song and its words'], ['design', 'Composing the opening, the climb and the signature steps'], ['cues', 'Writing the cue sheet, layer by layer'], ['validate', 'Checking the show against the format']];
 const STYLE_LABEL = { edm: 'EDM / club', bollywood: 'Bollywood', dandiya: 'Dandiya / garba', concert: 'Concert', devotional: 'Devotional', wedding: 'Wedding / sangeet', romantic: 'Romantic' };
 const guessTitle = (name) => name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
 
