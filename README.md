@@ -11,9 +11,22 @@ audio ─▶ analyze (pure JS DSP) ─▶ draft / Claude /wal skill ─▶ song.
 
 ## Live demo
 
-**Deploy your own copy on Vercel in one click:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmayuresh714%2FMusync---it-s-fun-...-&project-name=musync-light-show). The build settings are in [vercel.json](vercel.json), so there is nothing to configure. The result works on a phone too: the full simulator with the two copyright-free demo songs, every venue (concert stage, garba ground, club, banquet hall, wedding lawn and a Ganesh procession street), every camera and the Lights panel.
+**https://musync-light-show.vercel.app/** (or deploy your own copy: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmayuresh714%2FMusync---it-s-fun-...-&project-name=musync-light-show); the build settings are in [vercel.json](vercel.json)).
 
-The hosted demo has no server behind it, so **Design with AI** and the AI director are switched off there, and it says so. They need the Musync server, which runs on your own computer and uses your own Claude login (see below). The demo contains no commercial audio, lyrics or video.
+It is a small website, not just the simulator:
+
+| Page | What it is |
+|---|---|
+| `/` | Home: what Musync is in three pictures, the places it can light, the privacy promise, FAQ. English, Hindi, Marathi and Gujarati. |
+| `/equipment` | The collection: the nine families of light (beam, spot, wash, pixel bar, tube, LED wall, strobe, blinder, laser) with a moving picture, a plain-words job, five ratings and the models with their datasheet numbers. |
+| `/signup`, `/signin` | Accounts. |
+| `/account` | My shows (open, rename, download, delete), a getting-started checklist, settings (name, password, download my data, delete account). |
+| `/studio` | The simulator. |
+| `/legal` | Privacy, terms, copyright and music. |
+
+**Your song is never uploaded.** On the hosted site a song is read in the browser, the light plan (WAL) is made on the device, and only that small file is saved to the account. To hear a saved show, the person picks their own copy of the song again (its fingerprint is checked). The hosted site ships only copyright-free demo music, so there is no copyrighted audio to host or pay to store. **Saving a video** also happens in the browser (WebCodecs + MP4): the show is rendered frame by frame, joined with the song, and goes to the Downloads folder.
+
+Accounts are stored in the browser (IndexedDB; salted PBKDF2 password hash), which keeps the demo free of servers. They do not follow a person to another device. [sim/site/auth.js](sim/site/auth.js) and [sim/site/store.js](sim/site/store.js) are the only files that know this, so a cloud login can replace them. **Design with AI** and the AI director need the Musync server, which runs on your own computer with your own Claude login (see below); the hosted demo says so. The demo contains no commercial audio, lyrics or video.
 
 ## What is in it
 
@@ -27,7 +40,7 @@ The hosted demo has no server behind it, so **Design with AI** and the AI direct
 ```bash
 npm install
 npm run wal demo        # synthesize a copyright-free demo track + WAL into the simulator
-npm run dev             # http://localhost:5173
+npm run dev             # website http://localhost:5173, studio http://localhost:5173/studio
 npm test
 ```
 
@@ -67,6 +80,8 @@ The analysis runs on their device.
 | [core/fixtures/library.js](core/fixtures/library.js) | fixture profiles (datasheet specs, estimates marked `est`) |
 | [bin/wal.mjs](bin/wal.mjs) | CLI: build, analyze, draft, validate, summary, preview, publish, schema, demo |
 | [sim/](sim/) | Three.js simulator: venues with real structures, crowds, drone/walk cameras, rig builder, haze beams, timeline |
+| [sim/site/](sim/site/) | The website pages (home, lights, sign in, account): shared layout, four-language strings, device accounts and shows store, light drawings |
+| [sim/ui/export.js](sim/ui/export.js) | Saving a video in the browser (WebCodecs, MP4) |
 | [sim/scene/venues.js](sim/scene/venues.js) | concert field, garba ground, club: stages, PA, screens, trusses, surroundings |
 | [sim/scene/venues2.js](sim/scene/venues2.js), [venues3.js](sim/scene/venues3.js) | banquet hall and wedding lawn; the Ganesh procession street (tractors, light trolley, generator, idol trolley, crowd) |
 | [sim/scene/people.js](sim/scene/people.js) | GPU-animated crowd and performers (clap, jump, phones, sticks) that follows the song |
