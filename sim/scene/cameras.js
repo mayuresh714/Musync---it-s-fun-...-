@@ -237,7 +237,14 @@ export class CameraRig {
     this.setFov(f.fov, dt);
   }
 
+  // Every shot is designed for a landscape screen. On a tall (phone) screen the same vertical angle would crop the sides
+  // away, so widen it to keep most of the horizontal view: the stage, the crowd and the surroundings stay in frame.
   setFov(f, dt = 1 / 60) {
+    const aspect = this.camera.aspect || 1.78;
+    if (aspect < 1.6) {
+      const k = Math.pow(1.6 / aspect, 0.8);
+      f = Math.min(98, (2 * Math.atan(Math.tan((f * Math.PI) / 360) * k) * 180) / Math.PI);
+    }
     if (Math.abs(this.camera.fov - f) > 0.01) { this.camera.fov += (f - this.camera.fov) * (1 - Math.exp(-dt * 4)); this.camera.updateProjectionMatrix(); }
   }
 }
