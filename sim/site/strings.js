@@ -62,7 +62,7 @@ export const STRINGS = {
     'auth.forgot': 'Forgot your password?',
     'auth.forgot.t': 'Password help',
     'auth.forgot.d': 'Your account is saved on this device, so we cannot send an email. If you forgot the password, you can make a new account with another email.',
-    'auth.device': 'Your account is saved on this device and in this browser. Cloud sync is coming later.',
+    'auth.device': 'Your account and shows are saved in this browser on this device. Open Musync in the same browser next time to find them.',
     'auth.agree': 'By continuing you agree to the', 'auth.and': 'and',
     'auth.err.email': 'Please check the email address.', 'auth.err.name': 'Please type your name.', 'auth.err.weak': 'Use at least 8 characters.',
     'auth.err.taken': 'This email already has an account. Try signing in.', 'auth.err.bad': 'The email or the password is wrong.', 'auth.err.generic': 'Something went wrong. Please try again.',
@@ -81,6 +81,7 @@ export const STRINGS = {
     'acc.set.danger': 'Delete account', 'acc.set.danger.d': 'This removes your account and every show from this device.', 'acc.set.danger.btn': 'Delete my account',
     'acc.set.danger.ask': 'Type DELETE to confirm.',
     'acc.need': 'Please sign in to see your shows.',
+    'light.try': 'Try it on a song', 'light.tryOne': 'Try this one', 'light.all': 'All lights', 'light.next': 'Next light', 'light.how': 'How to test it', 'light.how.d': 'The studio puts this light alone on an empty stage with your song playing. Pick a movement, a brightness style or a colour and watch what it does.', 'light.open': 'Open', 'acc.play': 'Open', 'acc.local': 'Saved on this device',
   },
 
   hi: {
@@ -141,7 +142,7 @@ export const STRINGS = {
     'auth.forgot': 'पासवर्ड भूल गए?',
     'auth.forgot.t': 'पासवर्ड की मदद',
     'auth.forgot.d': 'आपका खाता इसी डिवाइस पर सेव है, इसलिए हम ईमेल नहीं भेज सकते। पासवर्ड भूल गए हों तो दूसरे ईमेल से नया खाता बना सकते हैं।',
-    'auth.device': 'आपका खाता इसी डिवाइस और ब्राउज़र में सेव है। क्लाउड सिंक बाद में आएगा।',
+    'auth.device': 'आपका खाता और शो इसी डिवाइस के इसी ब्राउज़र में सेव होते हैं। अगली बार वही ब्राउज़र खोलें, सब मिल जाएगा।',
     'auth.agree': 'आगे बढ़ने पर आप', 'auth.and': 'और',
     'auth.err.email': 'कृपया ईमेल जाँच लें।', 'auth.err.name': 'कृपया अपना नाम लिखें।', 'auth.err.weak': 'कम से कम 8 अक्षर रखें।',
     'auth.err.taken': 'इस ईमेल से खाता पहले से है। साइन इन करें।', 'auth.err.bad': 'ईमेल या पासवर्ड गलत है।', 'auth.err.generic': 'कुछ गड़बड़ हुई। कृपया फिर कोशिश करें।',
@@ -160,6 +161,7 @@ export const STRINGS = {
     'acc.set.danger': 'खाता हटाएँ', 'acc.set.danger.d': 'इससे आपका खाता और हर शो इस डिवाइस से हट जाएगा।', 'acc.set.danger.btn': 'मेरा खाता हटाएँ',
     'acc.set.danger.ask': 'पक्का करने के लिए DELETE लिखें।',
     'acc.need': 'अपने शो देखने के लिए साइन इन करें।',
+    'light.try': 'गाने पर आज़माएँ', 'light.tryOne': 'इसे आज़माएँ', 'light.all': 'सभी लाइटें', 'light.next': 'अगली लाइट', 'light.how': 'कैसे आज़माएँ', 'light.how.d': 'स्टूडियो इस लाइट को खाली स्टेज पर अकेले रखता है और आपका गाना बजता है। कोई हलचल, चमक का तरीका या रंग चुनें और देखें यह क्या करती है।', 'light.open': 'खोलें', 'acc.play': 'खोलें', 'acc.local': 'इस डिवाइस पर सेव है',
   },
 
   mr: {
@@ -220,7 +222,7 @@ export const STRINGS = {
     'auth.forgot': 'पासवर्ड विसरलात?',
     'auth.forgot.t': 'पासवर्डसाठी मदत',
     'auth.forgot.d': 'तुमचे खाते याच डिव्हाइसवर सेव्ह आहे, म्हणून आम्ही ईमेल पाठवू शकत नाही. पासवर्ड विसरला असेल तर दुसऱ्या ईमेलने नवीन खाते उघडा.',
-    'auth.device': 'तुमचे खाते याच डिव्हाइसवर आणि ब्राउझरमध्ये सेव्ह आहे. क्लाउड सिंक नंतर येईल.',
+    'auth.device': 'तुमचे खाते आणि शो याच डिव्हाइसवरील याच ब्राउझरमध्ये सेव्ह होतात. पुढच्या वेळी तोच ब्राउझर उघडा, सगळे मिळेल.',
     'auth.agree': 'पुढे गेल्यास तुम्ही', 'auth.and': 'आणि',
     'auth.err.email': 'कृपया ईमेल तपासा.', 'auth.err.name': 'कृपया तुमचे नाव लिहा.', 'auth.err.weak': 'किमान 8 अक्षरे वापरा.',
     'auth.err.taken': 'या ईमेलने खाते आधीच आहे. साइन इन करा.', 'auth.err.bad': 'ईमेल किंवा पासवर्ड चुकीचा आहे.', 'auth.err.generic': 'काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.',
@@ -239,6 +241,7 @@ export const STRINGS = {
     'acc.set.danger': 'खाते काढा', 'acc.set.danger.d': 'यामुळे तुमचे खाते आणि प्रत्येक शो या डिव्हाइसवरून निघून जाईल.', 'acc.set.danger.btn': 'माझे खाते काढा',
     'acc.set.danger.ask': 'खात्रीसाठी DELETE लिहा.',
     'acc.need': 'तुमचे शो पाहण्यासाठी साइन इन करा.',
+    'light.try': 'गाण्यावर वापरून पहा', 'light.tryOne': 'हा वापरून पहा', 'light.all': 'सर्व दिवे', 'light.next': 'पुढचा दिवा', 'light.how': 'कसे वापरून पाहायचे', 'light.how.d': 'स्टुडिओ हा दिवा रिकाम्या स्टेजवर एकटा ठेवतो आणि तुमचे गाणे वाजते. हालचाल, चमकण्याची पद्धत किंवा रंग निवडा आणि तो काय करतो ते पहा.', 'light.open': 'उघडा', 'acc.play': 'उघडा', 'acc.local': 'या डिव्हाइसवर सेव्ह आहे',
   },
 
   gu: {
@@ -299,7 +302,7 @@ export const STRINGS = {
     'auth.forgot': 'પાસવર્ડ ભૂલી ગયા?',
     'auth.forgot.t': 'પાસવર્ડ માટે મદદ',
     'auth.forgot.d': 'તમારું ખાતું આ જ ડિવાઇસ પર સેવ છે, એટલે અમે ઇમેઇલ મોકલી શકતા નથી. પાસવર્ડ ભૂલી ગયા હો તો બીજા ઇમેઇલથી નવું ખાતું બનાવો.',
-    'auth.device': 'તમારું ખાતું આ જ ડિવાઇસ અને બ્રાઉઝરમાં સેવ છે. ક્લાઉડ સિંક પછી આવશે.',
+    'auth.device': 'તમારું ખાતું અને શો આ જ ડિવાઇસના આ જ બ્રાઉઝરમાં સેવ થાય છે. આગલી વખતે એ જ બ્રાઉઝર ખોલો, બધું મળી જશે.',
     'auth.agree': 'આગળ વધવાથી તમે', 'auth.and': 'અને',
     'auth.err.email': 'કૃપા કરીને ઇમેઇલ તપાસો.', 'auth.err.name': 'કૃપા કરીને તમારું નામ લખો.', 'auth.err.weak': 'ઓછામાં ઓછા 8 અક્ષર વાપરો.',
     'auth.err.taken': 'આ ઇમેઇલથી ખાતું પહેલેથી છે. સાઇન ઇન કરો.', 'auth.err.bad': 'ઇમેઇલ અથવા પાસવર્ડ ખોટો છે.', 'auth.err.generic': 'કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયત્ન કરો.',
@@ -318,5 +321,6 @@ export const STRINGS = {
     'acc.set.danger': 'ખાતું કાઢી નાખો', 'acc.set.danger.d': 'આનાથી તમારું ખાતું અને દરેક શો આ ડિવાઇસ પરથી જતો રહેશે.', 'acc.set.danger.btn': 'મારું ખાતું કાઢી નાખો',
     'acc.set.danger.ask': 'ખાતરી માટે DELETE લખો.',
     'acc.need': 'તમારા શો જોવા સાઇન ઇન કરો.',
+    'light.try': 'ગીત પર અજમાવો', 'light.tryOne': 'આ અજમાવો', 'light.all': 'બધી લાઇટો', 'light.next': 'આગળની લાઇટ', 'light.how': 'કેવી રીતે અજમાવવી', 'light.how.d': 'સ્ટુડિયો આ લાઇટને ખાલી સ્ટેજ પર એકલી મૂકે છે અને તમારું ગીત વાગે છે. હલનચલન, ચમકવાની રીત કે રંગ પસંદ કરો અને જુઓ તે શું કરે છે.', 'light.open': 'ખોલો', 'acc.play': 'ખોલો', 'acc.local': 'આ ડિવાઇસ પર સેવ છે',
   },
 };

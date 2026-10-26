@@ -48,13 +48,18 @@ await page.goto(`${base}/`);
 ok(/light show/i.test(await page.textContent('h1')), 'home: the headline says what it is');
 ok((await page.locator('.step').count()) === 3 && (await page.locator('.place').count()) === 5, 'home: three steps and five places');
 ok(await page.locator('#heroSignup').getAttribute('href') === '/signup', 'home: the main button leads to sign up');
-await page.selectOption('#langSel', 'hi');
+ok(await page.locator('header select, #site-header select').count() === 0, 'home: no browser-default dropdown in the header');
+await page.click('#langBtn');
+ok(await page.locator('#langMenu [role=menuitemradio]').count() === 4 && await page.locator('#langMenu [aria-checked=true]').textContent().then((t) => /English/.test(t)), 'language: a styled menu with four languages, English ticked');
+await page.keyboard.press('Escape'); await page.waitForTimeout(100);
+ok(await page.locator('#langMenu').isHidden(), 'language: Escape closes the menu');
+await page.click('#langBtn'); await page.click('#langMenu [data-lang=hi]');
 ok(/लाइट शो/.test(await page.textContent('h1')), 'home: Hindi switches the headline');
 ok(await page.evaluate(() => document.documentElement.lang) === 'hi', 'home: the page language is set');
-await page.selectOption('#langSel', 'en');
+await page.click('#langBtn'); await page.click('#langMenu [data-lang=en]');
 await page.goto(`${base}/equipment`);
 ok((await page.locator('.fam').count()) === 9, 'lights: nine families');
-ok((await page.locator('.fam li').count()) >= 17, 'lights: every model of the collection is listed');
+ok((await page.locator('a.fam').count()) === 9, 'lights: the collection page shows nine cards');
 
 // 2. an account is needed for /account, and sign up validates
 await page.goto(`${base}/account`);
@@ -158,6 +163,55 @@ await page.fill('#email', 'asha@example.com'); await page.fill('#password', 'a-g
 await page.waitForSelector('#err:not([hidden])');
 await page.waitForSelector('#err:not([hidden])');
 ok(/wrong/.test(await page.textContent('#err')), 'delete: the account is really gone');
+
+// 7b. every page fits a phone: no sideways scroll, the menu button works, the pictures are not cropped away
+for (const [w, h] of [[390, 844], [320, 568]]) {
+  const mctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true });
+  const mp = await mctx.newPage();
+  for (const pg of ['', 'equipment', 'light?type=beam', 'light?type=laser', 'signin', 'signup', 'legal']) {
+    await mp.goto(`${base}/${pg}`); await mp.waitForTimeout(500);
+    const over = await mp.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    ok(over <= 0, `phone ${w}: /${pg} has no sideways scroll`);
+  }
+  await mp.goto(`${base}/`);
+  await mp.tap('#burger'); await mp.waitForTimeout(400); ok(await mp.locator('#navLinks').isVisible(), `phone ${w}: the menu button opens the links`);
+  await mp.tap('#langBtn'); ok(await mp.locator('#langMenu').isVisible(), `phone ${w}: the language menu opens by touch`);
+  await mctx.close();
+}
+
+// 7c. the lights collection: each family opens, each model can be tried in the studio lab
+await page.goto(`${base}/equipment`);
+ok((await page.locator('a.fam[href^="/light?type="]').count()) === 9, 'lights: every family card opens its own page');
+await page.click('a.fam[href="/light?type=spot"]');
+await page.waitForURL(/light\?type=spot/);
+ok(/Spot light/.test(await page.textContent('h1')) && (await page.locator('.model').count()) === 2 && (await page.locator('.meter').count()) === 5, 'light: the spot page lists its models and five ratings');
+ok(await page.locator('.light-hero svg').isVisible(), 'light: it has a moving picture');
+await page.click('.model >> nth=0 >> a');
+await page.waitForFunction(() => window.__musync?.app?.wal && window.__musync.actions.bench.state().on, null, { timeout: 90000 });
+const lab = await ev(() => ({ b: window.__musync.actions.bench.state(), cam: window.__musync.app.camera, rig: window.__musync.app.rig.fixtures.map((f) => f.model) }));
+ok(lab.b.model === 'robe-megapointe' && lab.rig.length >= 1 && lab.rig.every((m) => m === 'robe-megapointe'), `lab: that exact light is alone on stage (${lab.b.model})`);
+ok(await page.locator('#rigDrawer.open .mchip').count() > 5, 'lab: the Try panel is open with its modes');
+await page.click('#rigDrawer .mchip >> nth=2');
+ok(Object.keys(await ev(() => window.__musync.actions.bench.state().pick)).length === 1, 'lab: picking a mode changes what the light does');
+await page.click('#rigDrawer .seg [role=tab]:has-text("Light")'); await page.click('#rigDrawer .mchip >> nth=1');
+ok(Object.keys(await ev(() => window.__musync.actions.bench.state().pick)).length === 2, 'lab: movement and brightness can be combined');
+ok(await ev(() => window.__musync.app.playing), 'lab: the song is playing under it');
+
+// 7d. the player bar is the simple kind, and a phone sees the whole scene
+const dockH = await page.evaluate(() => document.querySelector('#dock').getBoundingClientRect().height);
+ok(dockH >= 56 && dockH <= 90, `player: a slim bar (${Math.round(dockH)} px)`);
+ok(await page.evaluate(() => document.querySelector('#timelineCanvas').getBoundingClientRect().height <= 24), 'player: progress is a thin line');
+const pctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+await pctx.addInitScript(() => { try { localStorage.setItem('musync.welcomed', '1'); localStorage.setItem('musync.quality', 'low'); } catch {} });
+const pp = await pctx.newPage();
+await pp.goto(`${base}/studio?rig=dandiya`);
+await pp.waitForFunction(() => window.__musync?.app?.wal && !document.querySelector('#loader:not(.done)'), null, { timeout: 90000 });
+await pp.waitForTimeout(2500);
+const cam = await pp.evaluate(() => ({ aspect: window.__musync.stage.camera.aspect, fov: window.__musync.stage.camera.fov }), undefined, false);
+ok(cam.aspect < 0.6 && cam.fov > 62, `phone studio: the picture is widened for a tall screen (fov ${cam.fov.toFixed(0)}°)`);
+const dim = await pp.evaluate(() => ({ over: document.documentElement.scrollWidth - document.documentElement.clientWidth, dock: document.querySelector('#dock').getBoundingClientRect().height }));
+ok(dim.over <= 0 && dim.dock <= 80, `phone studio: no sideways scroll, a ${Math.round(dim.dock)} px player`);
+await pctx.close();
 
 // 8. the signed-out studio asks for an account when adding songs
 await studio('?add=1');

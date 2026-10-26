@@ -1,14 +1,15 @@
 import { mountLayout } from './layout.js';
 import { auth } from './auth.js';
 import { applyI18n } from './i18n.js';
-import { icon, colour } from './lights-art.js';
+import { icon, art } from './lights-art.js';
 
-mountLayout({ active: 'home' });
+mountLayout({ active: 'home', overHero: true });
 
-// the lights teaser: nine small icons, each a link to its card on the lights page
+// the lights band: a live picture of one light, and a chip for each family
 const FAMILIES = ['beam', 'spot', 'wash', 'pixel', 'tube', 'matrix', 'strobe', 'blinder', 'laser'];
+document.getElementById('gearStage').innerHTML = art('beam');
 const chips = document.getElementById('gearChips');
-chips.innerHTML = FAMILIES.map((id) => `<a class="chip" href="/equipment#${id}">${icon(id, 40)}<span data-i18n="lights.${id}.n"></span></a>`).join('');
+chips.innerHTML = FAMILIES.map((id) => `<a class="chip" href="/light?type=${id}">${icon(id, 22)}<span data-i18n="lights.${id}.n"></span></a>`).join('');
 applyI18n(chips);
 
 // signed-in visitors go to their shows instead of being asked to sign up again
@@ -23,12 +24,10 @@ function who() {
 }
 who(); auth.onChange(who);
 
-// the hero film is a bonus: show it only when it really loads, otherwise the drawn stage stays
+// the hero film fades in over the still picture once it can play
 const v = document.getElementById('heroVideo');
-if (v) {
-  v.addEventListener('canplay', () => { v.hidden = false; v.play().catch(() => {}); }, { once: true });
+if (v && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  v.addEventListener('canplay', () => { v.classList.add('on'); v.play().catch(() => {}); }, { once: true });
   v.addEventListener('error', () => v.remove(), true);
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) v.removeAttribute('autoplay');
   v.load();
-}
-void colour;
+} else v?.remove();

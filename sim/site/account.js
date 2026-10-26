@@ -35,7 +35,7 @@ function startCard() {
   if (steps.every(Boolean) && !new URLSearchParams(location.search).has('welcome')) { host.innerHTML = ''; return; }
   const now = steps.indexOf(false);
   host.innerHTML = `<div class="start"><h2 data-i18n="acc.start.t"></h2><ol>${steps.map((d, i) => `<li class="${d ? 'done' : i === now ? 'now' : ''}"><i>${d ? '✓' : i + 1}</i><span data-i18n="acc.start.${i + 1}"></span></li>`).join('')}</ol>
-    ${now === -1 ? '<b data-i18n="acc.start.done"></b>' : `<a class="btn primary" href="/studio${now === 1 ? '?add=1' : ''}" data-i18n="${now === 1 ? 'acc.add' : 'acc.open'}"></a>`}</div>`;
+    ${now === -1 ? '<b data-i18n="acc.start.done"></b>' : `<a class="btn primary" href="/studio${now === 1 ? '?add=1' : ''}" data-i18n="${now === 1 ? 'acc.add' : 'nav.studio'}"></a>`}</div>`;
   applyI18n(host);
 }
 
@@ -43,11 +43,16 @@ function card(s) {
   const h = hue(s.title);
   const el = document.createElement('article');
   el.className = 'show';
-  el.innerHTML = `<div class="show-top"><div class="show-art" style="background:linear-gradient(135deg,hsl(${h} 85% 68%),hsl(${(h + 50) % 360} 85% 58%))"></div><div style="min-width:0"><h3></h3><small></small></div></div>
-    <div class="show-meta"><span class="tag"></span><span class="tag"></span></div>
-    <div class="show-actions"><a class="btn primary sm" data-i18n="acc.open"></a><button class="btn sm" data-a="rename" data-i18n="acc.rename"></button><button class="btn sm" data-a="dl" data-i18n="acc.download"></button><button class="btn sm danger" data-a="del" data-i18n="acc.delete"></button></div>`;
-  el.querySelector('.show-art').textContent = (s.title.match(/[\p{L}\p{N}]/u) || ['♪'])[0].toUpperCase();
+  // the picture on each card is its own: bars drawn from the title, so every show looks like itself
+  let seed = [...s.title].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const bars = Array.from({ length: 30 }, () => `<i style="height:${18 + Math.round(rnd() * 62)}%"></i>`).join('');
+  el.innerHTML = `<div class="show-art" style="background:linear-gradient(135deg,hsl(${h} 78% 48%),hsl(${(h + 70) % 360} 80% 36%))">${bars}</div>
+    <div class="show-body"><div style="min-width:0"><h3></h3><small></small></div>
+    <div class="show-meta"><span class="tag"></span><span class="tag"></span><span class="tag" data-i18n="acc.local"></span></div>
+    <div class="show-actions"><a class="btn primary" data-i18n="acc.play"></a><button class="btn sm" data-a="rename" data-i18n="acc.rename"></button><button class="btn sm" data-a="dl" data-i18n="acc.download"></button><button class="btn sm danger" data-a="del" data-i18n="acc.delete"></button></div></div>`;
   el.querySelector('h3').textContent = s.title;
+  el.querySelector('h3').title = s.title;
   el.querySelector('small').textContent = s.artist || new Date(s.created).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   const tags = el.querySelectorAll('.tag');
   tags[0].textContent = `${s.bpm} ${t('acc.meta.bpm')}`; tags[1].textContent = mmss(s.duration);
