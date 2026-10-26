@@ -16,7 +16,7 @@ import { validateWal } from '../core/wal/validate.js';
 import { $, bus, el, initTooltips, initFocusHygiene, toast, closePopover } from './ui/kit.js';
 import { icon } from './ui/icons.js';
 import { loader, cut, initDropzone, initIdleFade, toggleFullscreen } from './ui/fx.js';
-import { initChrome } from './ui/chrome.js';
+import { initChrome, SHOT_NAMES } from './ui/chrome.js';
 import { initDrawers } from './ui/drawers.js';
 import { initPlanner } from './ui/planner.js';
 import { openAnalyze, openHelp } from './ui/dialogs.js';
@@ -24,6 +24,9 @@ import { createLibrary } from './library.js';
 import { createOnboarder } from './onboard.js';
 import { initLibrary } from './ui/library.js';
 import { startLive, LIVE_ERRORS } from './live/session.js';
+import { openAuth, userEntries, auth, shows } from './ui/account.js';
+import { makeWal, titleFromName } from './local-make.js';
+import { openExportDialog, webCodecsReady } from './ui/export.js';
 
 const RIG_PRESETS = [
   ['concert', 'Concert stage'],
@@ -127,11 +130,45 @@ async function exportVideo({ fps = 30, width = 1920, from = 0, to = Infinity } =
     if (wasPlaying) play();
   }
 }
+// Renders the show one fixed time-step at a time and hands every picture to onFrame (the in-browser video maker).
+async function renderOffline({ fps, longSide, seconds, onFrame, cancelled }) {
+  const canvas = stage.renderer.domElement, box = canvas.parentElement, total = Math.round(seconds * fps), pr0 = stage.renderer.getPixelRatio();
+  const wasPlaying = app.playing;
+  pause();
+  app.hold = true; last = performance.now(); app.playing = true; app.audio.pause();
+  stage.setPixelRatio(Math.max(0.5, Math.min(6, longSide / Math.max(box.clientWidth, box.clientHeight, 1))));
+  try {
+    for (let i = 0; i < 2 * fps; i++) { app.clock = 0; frame(last + 1000 / fps); } // settle smoke, camera and fixtures at the top of the song
+    app.clock = 0;
+    for (let i = 0; i < total && !cancelled(); i++) { frame(last + 1000 / fps); await onFrame(canvas, i, total); }
+  } finally { app.hold = false; last = performance.now(); app.playing = false; seek(0); stage.setPixelRatio(pr0); if (wasPlaying) play(); }
+}
+function openVideoDialog() {
+  const base = `Musync - ${(app.wal.meta.title || 'show').replace(/[^\w\- ]+/g, '').trim().slice(0, 50)}`;
+  openExportDialog({
+    host: {
+      title: app.wal.meta.title || 'Show', duration: app.wal.meta.duration, fileName: base,
+      camera: app.camera === 'director' ? 'Auto camera' : SHOT_NAMES[app.camera] || app.camera,
+      canvas: () => stage.renderer.domElement,
+      getAudio: async () => app.audioBuffer || (app.audio.src ? (await fetch(app.audio.src)).arrayBuffer() : null),
+      render: renderOffline,
+      recordLive: () => toggleRecord(true),
+    },
+    onSaved: ({ file }) => {
+      try { localStorage.setItem('musync.videos', String((+localStorage.getItem('musync.videos') || 0) + 1)); } catch {}
+      toast(`Saved ${file}.`, { kind: 'ok', ms: 5000 });
+    },
+  });
+}
+let backendExport;
 async function toggleRecord(live = false) {
   if (exporting) { exporting.cancel = true; return; }
   if (recorder.active) { recAutoStop = false; recorder.stop(); return; }
   if (!app.wal) { toast('Open a song first.', { kind: 'info' }); return; }
   if (!live && !app.live) {
+    // with the local backend (ffmpeg) the long-standing frame-by-frame export is used; anywhere else the video is made in the browser
+    if (backendExport === undefined) backendExport = !!(await director.check())?.ffmpeg;
+    if (!backendExport) { openVideoDialog(); return; }
     try {
       toast('Exporting the whole show frame by frame. Keep this tab in front. Press E again to cancel.', { kind: 'info', ms: 6000 });
       const done = await exportVideo();
@@ -457,6 +494,7 @@ async function loadSongIndex() {
   try { idx = await (await fetch('songs/index.json')).json(); } catch {}
   // shows made by the AI director on this machine (the backend may not be running)
   try { const made = await (await fetch('/api/library', { signal: AbortSignal.timeout(2000) })).json(); if (Array.isArray(made)) idx = [...made, ...idx]; } catch {}
+  idx = [...(await userEntries()), ...idx]; // the signed-in person's own shows (saved in this browser)
   if (token !== indexToken) return lib.entries;
   app.songs = idx;
   lib.setEntries(idx);
@@ -467,9 +505,13 @@ async function loadSongIndex() {
 const walLru = app.walCache;
 async function fetchWal(e) {
   if (walLru.has(e.id)) { const w = walLru.get(e.id); walLru.delete(e.id); walLru.set(e.id, w); return w; }
-  const res = await fetch(songUrl(e.wal));
-  if (!res.ok) throw new Error(`the show file could not be loaded (${res.status})`);
-  const w = await res.json();
+  let w;
+  if (e.wal.startsWith('idb:')) { w = (await shows.get(e.wal.slice(4)))?.wal; if (!w) throw new Error('this show is not saved in this browser any more'); }
+  else {
+    const res = await fetch(songUrl(e.wal));
+    if (!res.ok) throw new Error(`the show file could not be loaded (${res.status})`);
+    w = await res.json();
+  }
   walLru.set(e.id, w);
   while (walLru.size > 12) walLru.delete(walLru.keys().next().value);
   return w;
@@ -492,10 +534,12 @@ async function loadSong(id) {
   if (token !== loadToken) return false;
   pause();
   if (e.audio) { app.audio.src = songUrl(e.audio); app.audioName = e.title || e.audio; app.audioBuffer = null; }
-  else { app.audio.removeAttribute('src'); toast('This song has no bundled audio. Open the audio file to hear it.', { kind: 'info' }); }
+  else { app.audio.removeAttribute('src'); app.audioBuffer = null; if (!e.local) toast('This song has no bundled audio. Open the audio file to hear it.', { kind: 'info' }); }
   applyVolume();
   const ok = await setWal(wal, { songId: id });
   if (ok) { lib.markPlayed(id); emitQueue(); prefetchNext(); }
+  askSong.close();
+  if (ok && e.local) askSong.open(e); // the account keeps the light plan only; the song itself is picked from the person's own device
   return ok;
 }
 
@@ -535,7 +579,7 @@ async function prevSong() {
   if (id && id !== app.songId) { if (await loadSong(id)) play(); } else seek(0);
 }
 function songEnded() {
-  if (!app.playing) return;
+  if (!app.playing || app.hold) return;
   pause();
   if (recorder.active && recAutoStop) { recAutoStop = false; setTimeout(() => recorder.stop(), 600); }
   if (app.queue.autoNext) nextSong(true);
@@ -564,9 +608,41 @@ async function handleFiles(files) {
   }
 }
 
+// A saved show holds the light plan only. This asks for the person's own copy of the song and plays it from this device.
+const askSong = {
+  card: null,
+  close() { this.card?.remove(); this.card = null; },
+  open(entry) {
+    this.close();
+    const input = el('input', { type: 'file', accept: 'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac', hidden: true, onchange: (ev) => { const f = ev.target.files[0]; if (f) attachSong(f, entry); } });
+    this.card = el('aside', { class: 'welcome glass songask', role: 'complementary', 'aria-label': 'Add your copy of the song' },
+      el('div', {}, el('b', { text: `Hear “${entry.title}”` }), el('p', { class: 'muted', text: 'This account keeps only the lights. Choose your copy of the song to play it with them. The file stays on your device.' })),
+      el('div', { class: 'row' }, input,
+        el('button', { class: 'btn primary', html: `${icon('upload', 16)}<span>Choose the song</span>`, onclick: () => input.click() }),
+        el('button', { class: 'btn', text: 'Lights only', onclick: () => this.close() })),
+      el('button', { class: 'btn icon ghost sm', 'aria-label': 'Dismiss', html: icon('close', 14), onclick: () => this.close() }));
+    $('#ui').append(this.card);
+  },
+};
+async function attachSong(file, entry) {
+  const buf = await file.arrayBuffer();
+  const same = !entry.audioSha || (crypto.subtle && (await sha256(buf)) === entry.audioSha);
+  app.audioBuffer = buf; app.audioName = file.name;
+  app.audio.src = URL.createObjectURL(file);
+  applyVolume();
+  await new Promise((r) => { app.audio.onloadedmetadata = r; setTimeout(r, 2000); });
+  const off = Math.abs((app.audio.duration || 0) - app.wal.meta.duration) > 2;
+  askSong.close();
+  if (same && !off) toast('That is the same recording, so the lights will play in time.', { kind: 'ok' });
+  else toast('This file looks different from the one the show was made for, so the lights may be out of time.', { kind: 'warn', ms: 7000 });
+  if (app.playing) { app.audio.currentTime = app.clock; app.audio.play().catch(() => {}); }
+}
+
 const sha256 = async (buf) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
 async function loadAudioFile(file) {
+  const cur = lib.byId.get(app.songId);
+  if (cur?.local && !app.audio.src) { await attachSong(file, cur); return; } // dropping the song onto a saved show
   pause();
   app.audioBuffer = await file.arrayBuffer();
   app.audioName = file.name;
@@ -617,26 +693,7 @@ function analyze() {
     play: () => { seek(0); play(); },
     download: () => actions.downloadWal(),
     run: async ({ style, onStage }) => {
-      onStage('decode');
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const buf = await ctx.decodeAudioData(app.audioBuffer.slice(0));
-      ctx.close();
-      const mono = new Float32Array(buf.length);
-      for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) mono[i] += d[i] / buf.numberOfChannels; }
-      const worker = new Worker(new URL('./analyze-worker.js', import.meta.url), { type: 'module' });
-      const title = app.audioName.replace(/\.[^.]+$/, '');
-      const hash = crypto.subtle ? await sha256(app.audioBuffer) : undefined;
-      const result = await new Promise((resolve, reject) => {
-        worker.onmessage = (m) => {
-          if (m.data.type === 'progress') onStage(m.data.stage);
-          if (m.data.type === 'done') resolve(m.data);
-          if (m.data.type === 'error') reject(new Error(m.data.message));
-        };
-        worker.onerror = (e) => reject(new Error(e.message || 'The analysis worker crashed.'));
-        worker.postMessage({ samples: mono, sr: buf.sampleRate, opts: { title, styles: [style], audio: { file: app.audioName, sha256: hash, duration: buf.duration } } }, [mono.buffer]);
-      });
-      worker.terminate();
-      onStage('done');
+      const result = await makeWal({ buffer: app.audioBuffer, fileName: app.audioName, style, title: titleFromName(app.audioName), onStage });
       await setWal(result.wal, { quiet: true });
       return result;
     },
@@ -722,6 +779,7 @@ function setQuality(mode) {
   if (mode !== 'auto') applyScale(Math.min(FIXED[mode], dprMax)); else { drs.ceil = dprMax; drs.low = drs.high = 0; }
 }
 function drsTick(now) {
+  if (app.hold) { drs.frames = 0; drs.since = now; drs.sum = drs.sumsq = 0; drs.prev = 0; return; } // the video maker needs a fixed picture size
   drs.frames++;
   if (drs.prev) { const d = now - drs.prev; drs.sum += d; drs.sumsq += d * d; }
   drs.prev = now;
@@ -742,7 +800,18 @@ function drsTick(now) {
 }
 
 // ── actions for the interface ────────────────────────────────────────────
+const accountActions = {
+  user: () => auth.user(),
+  signIn: (reason) => openAuth({ mode: 'in', reason, onDone: () => { reloadLibrary(); libUI.renderAdd(); } }),
+  signUp: (reason) => openAuth({ mode: 'up', reason, onDone: () => { reloadLibrary(); libUI.renderAdd(); } }),
+  signOut() { auth.signOut(); toast('Signed out.', { kind: 'info', ms: 2000 }); },
+  shows: () => { location.href = '/account'; },
+  home: () => { location.href = '/'; },
+};
+auth.onChange(() => { reloadLibrary(); libUI?.renderAdd?.(); });
+
 const actions = {
+  account: accountActions,
   play, pause, toggle: () => (app.live ? stopLive(true) : app.playing ? pause() : play()), seek,
   goLive, stopLive, live: () => app.live,
   setSensitivity(k) { app.liveSensitivity = k; app.live?.setSensitivity?.(k); },
@@ -782,7 +851,19 @@ const getState = () => ({
 const chrome = initChrome({ actions, getState });
 const drawers = initDrawers({ actions, getState });
 initPlanner({ actions, getState, drawers });
-const onb = createOnboarder({ onChange: () => libUI.renderAdd(), onSongsChanged: async (n, items = []) => { for (const it of items) if (it.replaces && lib.isFav(it.replaces) && it.jobId && !lib.isFav(it.jobId)) lib.toggleFav(it.jobId); await reloadLibrary(); toast(`${n} new show${n > 1 ? 's' : ''} ready in your library.`, { kind: 'ok' }); } });
+const localMake = {
+  user: () => auth.user(),
+  needAccount: () => accountActions.signUp('Create a free account to add your songs. They stay on this device; only the light plan is saved.'),
+  async make(it, form, onStage) {
+    const buffer = await it.file.arrayBuffer();
+    const hash = crypto.subtle ? await sha256(buffer) : '';
+    const same = hash && (await shows.list(auth.user().id)).find((s) => s.audioSha === hash);
+    if (same) return { show: same, dup: true };
+    const r = await makeWal({ buffer, fileName: it.file.name, style: form.style || 'bollywood', title: it.name, artist: form.artist, onStage });
+    return { show: await shows.add(auth.user().id, { title: it.name, artist: form.artist || '', wal: r.wal, audioSha: r.sha256 }) };
+  },
+};
+const onb = createOnboarder({ local: localMake, onChange: () => libUI.renderAdd(), onSongsChanged: async (n, items = []) => { for (const it of items) if (it.replaces && lib.isFav(it.replaces) && it.jobId && !lib.isFav(it.jobId)) lib.toggleFav(it.jobId); await reloadLibrary(); toast(`${n} new show${n > 1 ? 's' : ''} ready in your library.`, { kind: 'ok' }); } });
 const libUI = initLibrary({ lib, onb, actions, getState });
 
 // hidden file inputs
@@ -900,7 +981,7 @@ function frame(now) {
 
 // test hooks
 window.__musync = {
-  loadSong, recorder, exportVideo, perf, app, stage, rigView, effects, lib, onb, libUI, createDecoder, seek, goLive, stopLive, play, pause, setWal, loadRigPreset, camRig, actions, drawers,
+  loadSong, auth, shows, recorder, exportVideo, openVideoDialog, perf, app, stage, rigView, effects, lib, onb, libUI, createDecoder, seek, goLive, stopLive, play, pause, setWal, loadRigPreset, camRig, actions, drawers,
   setView: (m) => actions.setCamera(m),
   shot: (m, u) => { camRig.setMode(m); setTimeout(() => (camRig.u = u), 220); },
   frameAt: (t) => { app.clock = t; },
@@ -926,7 +1007,19 @@ const idx = await loadSongIndex();
 bus.emit('presets');
 bus.emit('haze', true);
 applyVolume();
+const deepLink = new URLSearchParams(location.search);
 if (idx.length) await loadSong(lib.lastId() || idx[0].id);
+{ // links from the website: /studio?rig=hall  ?show=<id>  ?add=1
+  const rigId = deepLink.get('rig'), showId = deepLink.get('show');
+  if (rigId && RIG_PRESETS.some(([id]) => id === rigId)) await loadRigPreset(rigId);
+  if (showId) {
+    if (!auth.user()) accountActions.signIn('Sign in to open your shows.');
+    else if (lib.byId.has(showId)) await loadSong(showId);
+    else toast('That show is not saved in this browser.', { kind: 'warn' });
+  }
+  if (deepLink.has('add')) { if (!auth.user() && (await director.check()) === null) accountActions.signUp('Create a free account to add your songs. They stay on this device; only the light plan is saved.'); else libUI.open('add'); }
+  if (rigId || showId || deepLink.has('add')) history.replaceState(null, '', location.pathname);
+}
 loader.set('Starting the show…', 0.95);
 requestAnimationFrame(loop);
 actions.setCamera('director');
@@ -941,7 +1034,7 @@ loader.hide();
   $('#ui').append(hint);
   setTimeout(() => hint.remove(), 12000);
   let seen = false; try { seen = localStorage.getItem('musync.welcomed') === '1'; } catch {}
-  if (!seen) {
+  if (!seen && !deepLink.has('show') && !deepLink.has('add') && !deepLink.has('rig')) {
     const done = () => { try { localStorage.setItem('musync.welcomed', '1'); } catch {} card.remove(); };
     const card = el('aside', { class: 'welcome glass', role: 'complementary', 'aria-label': 'Getting started' },
       el('div', {}, el('b', { text: 'Welcome to Musync' }), el('p', { class: 'muted', text: 'Browse the library, or add your own songs and let the director turn each one into a light show.' })),

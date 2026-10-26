@@ -757,3 +757,8 @@ body.live .transport .btn:not(.play) { opacity: 0.3; pointer-events: none; }
 .ai-offline svg { flex: none; margin-top: 2px; color: var(--accent); }
 .ai-offline b { color: var(--text); font-weight: 600; }
 .ai-offline[hidden] { display: none; }
+
+/* ── account bits inside the studio ───────────────────────────────────── */
+a.brand { color: inherit; text-decoration: none; border-radius: 10px; }
+a.brand:hover .mark { filter: drop-shadow(0 0 10px rgba(255, 180, 84, 0.8)); }
+.songask { top: auto; bottom: calc(var(--dock-h) + 24px); }

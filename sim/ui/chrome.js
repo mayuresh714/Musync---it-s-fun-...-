@@ -31,7 +31,7 @@ export function initChrome({ actions, getState }) {
 
   // ── top bar: brand and songs on the left; four things on the right ────────────────────────────────────────
   const libBtn = el('button', { class: 'btn ghost lib-open', 'aria-haspopup': 'dialog', 'data-tip': 'Browse, search and add songs', 'data-kbd': 'L', 'data-tip-pos': 'below', html: `${icon('library', 20)}<span class="lbl">Songs</span>`, onclick: () => actions.openLibrary() });
-  const left = el('div', { class: 'pill glass tb-left' }, el('div', { class: 'brand', html: `${MARK}<span class="word">Musync</span>` }), el('span', { class: 'vr' }), libBtn);
+  const left = el('div', { class: 'pill glass tb-left' }, el('a', { class: 'brand', href: '/', 'aria-label': 'Musync home page', 'data-tip': 'Back to the Musync home page', 'data-tip-pos': 'below', html: `${MARK}<span class="word">Musync</span>` }), el('span', { class: 'vr' }), libBtn);
 
   // the camera: one button, one menu, plain names
   const viewBtn = el('button', { class: 'btn view-btn', 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-label': 'Camera view', 'data-tip': 'Change the camera view', 'data-kbd': 'C', 'data-tip-pos': 'below', onclick: () => openViewMenu() });
@@ -175,17 +175,29 @@ export function initChrome({ actions, getState }) {
   function openMore() {
     const st = getState();
     const later = (fn) => () => { pop.close(); setTimeout(fn, 0); };
+    const me = actions.account.user();
     const content = el('div', {},
+      el('div', { class: 'menu-title label', text: me ? me.name : 'Account' }),
+      ...(me ? [
+        menuItem({ icon: 'user', label: 'My shows', sub: me.email, onClick: later(() => actions.account.shows()) }),
+        menuItem({ icon: 'logout', label: 'Sign out', onClick: later(() => actions.account.signOut()) }),
+      ] : [
+        menuItem({ icon: 'user', label: 'Create a free account', sub: 'Add your own songs and keep your shows', onClick: later(() => actions.account.signUp()) }),
+        menuItem({ icon: 'lock', label: 'Sign in', onClick: later(() => actions.account.signIn()) }),
+      ]),
+      el('div', { class: 'menu-sep' }),
       menuItem({ icon: 'pulse', label: 'What the lights are doing', sub: 'Live view of every layer', right: el('span', { class: 'kbd', text: 'S' }), onClick: later(() => actions.toggleDrawer('show')) }),
       menuItem({ icon: 'sliders', label: 'Appearance', sub: 'Beam thickness, brightness, screens', right: el('span', { class: 'kbd', text: 'V' }), onClick: later(() => openLook()) }),
       menuItem({ icon: 'haze', label: 'Haze in the air', sub: 'Makes the beams easier to see', checked: st.haze, right: el('span', { class: 'kbd', text: 'H' }), onClick: later(() => actions.toggleHaze()) }),
       el('div', { class: 'menu-sep' }),
-      menuItem({ icon: 'record', label: 'Save as a video', sub: 'Smooth 1080p with the song, takes a few minutes', right: el('span', { class: 'kbd', text: 'E' }), onClick: later(() => actions.toggleRecord()) }),
+      menuItem({ icon: 'record', label: 'Save as a video', sub: 'Smooth video with the song, made on this device', right: el('span', { class: 'kbd', text: 'E' }), onClick: later(() => actions.toggleRecord()) }),
       menuItem({ icon: 'expand', label: 'Full screen', right: el('span', { class: 'kbd', text: 'F' }), onClick: later(() => actions.fullscreen()) }),
       menuItem({ icon: 'live', label: 'Listen live', sub: 'Light up to a browser tab or the microphone', right: el('span', { class: 'kbd', text: 'O' }), onClick: later(() => actions.openLive()) }),
       el('div', { class: 'menu-sep' }),
       menuItem({ icon: 'gear', label: 'Picture quality', sub: 'Auto, high, balanced or low', onClick: later(() => openSettings()) }),
-      menuItem({ icon: 'help', label: 'Keyboard shortcuts', right: el('span', { class: 'kbd', text: '?' }), onClick: later(() => actions.help()) }));
+      menuItem({ icon: 'help', label: 'Keyboard shortcuts', right: el('span', { class: 'kbd', text: '?' }), onClick: later(() => actions.help()) }),
+      el('div', { class: 'menu-sep' }),
+      menuItem({ icon: 'home', label: 'Musync home page', sub: 'How it works, the lights, privacy', onClick: later(() => actions.account.home()) }));
     const pop = popover(moreBtn, content, { width: 340, align: 'end' });
   }
 

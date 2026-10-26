@@ -7,7 +7,7 @@ const STAGE_TEXT = { queued: 'Waiting for its turn', download: 'Downloading the 
 // "Some_Song_Name_Lyrical_Artist_Name.wav" -> "Some Song Name Lyrical Artist Name"
 export const prettyName = (f) => f.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').replace(/\s*\((official|lyric|lyrical|audio|video)[^)]*\)/gi, '').replace(/\s+/g, ' ').trim();
 
-export function createOnboarder({ onChange, onSongsChanged }) {
+export function createOnboarder({ onChange, onSongsChanged, local }) {
   const S = { backend: undefined, items: [], remote: [], uploading: 0, timer: null, seq: 0 };
   const emit = () => onChange?.(S);
 
@@ -78,12 +78,32 @@ export function createOnboarder({ onChange, onSongsChanged }) {
   async function start(form = {}) {
     const todo = S.items.filter((i) => i.status === 'ready' || i.status === 'error');
     if (!todo.length) return;
-    if (!S.backend) await checkBackend();
+    if (S.backend === undefined || S.backend === null) await checkBackend();
+    if (!S.backend && local) return startLocal(todo.filter((i) => i.file), form);
     if (!S.backend) { for (const i of todo) { i.status = 'error'; i.error = 'The Musync backend is not running.'; } emit(); return; }
     let next = 0;
     const worker = async () => { while (next < todo.length) { const it = todo[next++]; await uploadOne(it, form); } };
     await Promise.all([worker(), worker()]);
     poll();
+  }
+
+  // No backend (the hosted site): each song is read and drafted on this device, one at a time, and saved to the account.
+  // The audio never leaves the browser; only the light plan (WAL) is stored.
+  const LOCAL_PCT = { decode: 0.1, features: 0.3, rhythm: 0.55, structure: 0.8, accents: 0.92, done: 1 };
+  async function startLocal(todo, form) {
+    if (!local.user()) { local.needAccount(); return; }
+    const done = [];
+    for (const it of todo) {
+      it.status = 'running'; it.stage = 'decode'; it.error = null; it.pct = 0.04; it.detail = 'Reading the song on this device'; emit();
+      try {
+        const r = await local.make(it, form, (stage) => { it.pct = LOCAL_PCT[stage] ?? it.pct; it.detail = { decode: 'Reading the song on this device', features: 'Measuring the sound', rhythm: 'Finding the beat', structure: 'Finding the verses and the chorus', accents: 'Placing the lights' }[stage] || it.detail; emit(); });
+        it.jobId = r.show.id; it.title = r.show.title;
+        if (r.dup) { it.status = 'dup'; it.dupId = r.show.id; it.detail = `Already in your library as “${r.show.title}”`; }
+        else { it.status = 'done'; it.pct = 1; done.push(it); }
+      } catch (e) { it.status = 'error'; it.error = e.message; }
+      emit();
+    }
+    if (done.length) onSongsChanged?.(done.length, done);
   }
 
   let polling = false;
@@ -129,7 +149,7 @@ export function createOnboarder({ onChange, onSongsChanged }) {
   const retry = (it, form) => { it.status = 'ready'; it.error = null; return start(form); };
 
   return {
-    state: S, checkBackend, add, addLinks, remove, clearFinished, start, cancel, retry, remake, poll, stageIndex: (st) => Math.max(0, STAGES.indexOf(st)), STAGES, STAGE_TEXT,
+    state: S, checkBackend, local: !!local, add, addLinks, remove, clearFinished, start, cancel, retry, remake, poll, stageIndex: (st) => Math.max(0, STAGES.indexOf(st)), STAGES, STAGE_TEXT,
     pending: () => S.items.filter((i) => ['uploading', 'queued', 'running'].includes(i.status)).length + S.remote.length,
   };
 }

@@ -60,6 +60,12 @@ const P = {
   record: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6" fill="currentColor" stroke="none"/>',
   stop: '<rect x="6" y="6" width="12" height="12" rx="2.4" fill="currentColor" stroke="none"/>',
   eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.6-4 3.7-6.5 7.5-6.5s6.9 2.5 7.5 6.5"/>',
+  home: '<path d="M4 11 12 4l8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+  logout: '<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9"/>',
+  film: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M7.5 4.5v15M16.5 4.5v15M3 9.5h4.5M3 14.5h4.5M16.5 9.5H21M16.5 14.5H21"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+  share: '<path d="M12 15V3.5m-4.5 4L12 3.5l4.5 4M5 12.5v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
   // venue thumbnails
   v_stage: '<path d="M3 20h18M5 20V9m14 11V9M3 9h18M7 9v3m5-3v3m5-3v3"/><path d="M7 12 5.5 17m6.5-5v5m5-5 1.5 5" opacity=".55"/>',
   v_club: '<circle cx="12" cy="13.5" r="6.5"/><path d="M12 3v4M5.5 13.5h13M12 7c-3.2 3.2-3.2 9.8 0 13M12 7c3.2 3.2 3.2 9.8 0 13"/>',

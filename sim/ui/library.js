@@ -311,13 +311,14 @@ export function initLibrary({ lib, onb, actions, getState }) {
   function buildAdd() {
     dom.banner = el('div', { class: 'banner', hidden: true });
     dom.file = el('input', { type: 'file', multiple: true, accept: 'audio/*,video/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.mp4,.mov,.m4v,.webm,.mkv', hidden: true, onchange: (e) => { addFiles([...e.target.files]); e.target.value = ''; } });
-    dom.pick = el('button', { class: 'dropbig', onclick: () => dom.file.click(),
-      html: `${icon('upload', 26)}<b>Drop songs or music videos here, or choose files</b><small>mp3 · wav · m4a · flac · ogg · mp4 · mov · webm &nbsp;·&nbsp; add as many as you like; the director works through them one at a time (about 90 seconds each)</small>` });
+    dom.pick = el('button', { class: 'dropbig', onclick: () => (gated() ? needAccount() : dom.file.click()),
+      html: `${icon('upload', 26)}<b>Drop songs or music videos here, or choose files</b><small data-pick-sub>mp3 · wav · m4a · flac · ogg · mp4 · mov · webm &nbsp;·&nbsp; add as many as you like; the director works through them one at a time (about 90 seconds each)</small>` });
     ['dragenter', 'dragover'].forEach((t) => dom.pick.addEventListener(t, (e) => { e.preventDefault(); e.stopPropagation(); dom.pick.classList.add('over'); }));
-    ['dragleave', 'drop'].forEach((t) => dom.pick.addEventListener(t, (e) => { e.preventDefault(); e.stopPropagation(); dom.pick.classList.remove('over'); if (t === 'drop') addFiles([...e.dataTransfer.files]); }));
+    ['dragleave', 'drop'].forEach((t) => dom.pick.addEventListener(t, (e) => { e.preventDefault(); e.stopPropagation(); dom.pick.classList.remove('over'); if (t === 'drop') { if (gated()) needAccount(); else addFiles([...e.dataTransfer.files]); } }));
     dom.link = el('input', { class: 'input', type: 'url', placeholder: 'Paste a YouTube link', 'aria-label': 'YouTube link',
       onkeydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); addLinkNow(); } }, onpaste: () => setTimeout(addLinkNow, 0) });
     const linkRow = el('div', { class: 'linkrow' }, el('span', { class: 'lk-ico', html: icon('link', 16) }), dom.link, el('button', { class: 'btn', text: 'Add link', onclick: addLinkNow }));
+    dom.linkRow = linkRow;
     dom.engine = el('div', { class: 'seg engine', role: 'radiogroup', 'aria-label': 'How to make the show' });
     for (const [id, label, sub] of [['ai', 'AI director', 'Claude reads the lyrics and understands the song (about 2 min each)'], ['code', 'Code only', 'Fast and free, follows the sound and repeats (about 10 s each)']]) {
       dom.engine.append(el('button', { role: 'radio', 'data-e': id, 'aria-checked': 'false', 'data-tip': sub, 'data-tip-pos': 'below', html: `${icon(id === 'ai' ? 'sparkle' : 'pulse', 16)}<span>${label}</span>`, onclick: () => setEngine(id) }));
@@ -330,6 +331,8 @@ export function initLibrary({ lib, onb, actions, getState }) {
       onclick: () => { dom.watch.setAttribute('aria-checked', String(dom.watch.getAttribute('aria-checked') !== 'true')); } },
       el('span', {}, el('b', { text: 'Watch the video' }), el('small', { text: 'For a link or a video file: the AI studies the dancers, their steps and the mood, so the lights can answer them' })), el('i', { class: 'sw-track' }));
     const engineRow = el('div', { class: 'field' }, el('span', { text: 'Method' }), dom.engine, dom.engineNote, dom.watch);
+    dom.engineRow = engineRow;
+    dom.deviceNote = el('div', { class: 'note', hidden: true, html: `${icon('lock', 16)}<span>Your songs are read on this device and never uploaded. Only the light plan is saved to your account, so you choose the song file again when you want to hear it. Takes about 10 to 20 seconds per song.</span>` });
     const opts = el('div', { class: 'add-opts' }, el('label', { class: 'field' }, el('span', { text: 'Occasion' }), dom.occasion), el('label', { class: 'field' }, el('span', { text: 'Artist' }), dom.artistAll));
     dom.items = el('div', { class: 'aitems', role: 'list', 'aria-label': 'Songs to add' });
     dom.clearBtn = el('button', { class: 'btn ghost', text: 'Clear finished', onclick: () => onb.clearFinished() });
@@ -341,14 +344,18 @@ export function initLibrary({ lib, onb, actions, getState }) {
       el('button', { class: 'btn sm ghost', html: `${icon('sparkle', 14)}<span>Quick draft one file</span>`, 'data-tip': 'Analyzes in the browser; no lyrics or AI', onclick: () => { close(); actions.pickAudio(); } }));
     const head = (n, t) => el('h3', { class: 'ahead' }, el('i', { text: n }), el('span', { text: t }));
     dom.paneAdd.append(dom.banner, dom.file,
-      el('section', { class: 'asec' }, head('1', 'Choose what to add'), dom.pick, el('div', { class: 'or', text: 'or paste a YouTube link' }), linkRow),
-      el('section', { class: 'asec' }, head('2', 'How the show is made'), el('div', { class: 'acard' }, engineRow, opts)),
+      el('section', { class: 'asec' }, head('1', 'Choose what to add'), dom.pick, (dom.orText = el('div', { class: 'or', text: 'or paste a YouTube link' })), linkRow),
+      el('section', { class: 'asec' }, head('2', 'How the show is made'), el('div', { class: 'acard' }, engineRow, dom.deviceNote, opts)),
       el('section', { class: 'asec grow-sec' }, head('3', 'Queue'), dom.items),
       other, dom.addFoot);
   }
 
   let engine = (() => { try { return localStorage.getItem('musync.engine'); } catch { return null; } })();
   const formNow = () => ({ style: dom.occasion.value, artist: dom.artistAll.value, engine: engineNow(), video: dom.watch?.getAttribute('aria-checked') === 'false' ? 'off' : '' });
+  // No backend (the hosted site): shows are made on this device, and an account is needed to keep them
+  const device = () => onb.state.backend === null && onb.local;
+  const gated = () => device() && !actions.account.user();
+  const needAccount = () => actions.account.signUp('Create a free account to add your songs. They stay on this device; only the light plan is saved.');
   const engineNow = () => engine || (onb.state.backend?.claude ? 'ai' : 'code');
   function setEngine(id) { engine = id; try { localStorage.setItem('musync.engine', id); } catch {} renderEngine(); }
   function renderEngine() {
@@ -378,8 +385,18 @@ export function initLibrary({ lib, onb, actions, getState }) {
     renderEngine();
     const needsAi = engineNow() === 'ai';
     const needsYt = items.some((i) => i.link && ['ready', 'error'].includes(i.status));
-    dom.banner.hidden = !!(b && b.ffmpeg && (b.claude || !needsAi) && (b.ytdlp || !needsYt));
-    if (!dom.banner.hidden) {
+    const onDevice = device();
+    for (const n of [dom.engineRow, dom.linkRow, dom.orText]) if (n) n.hidden = onDevice;
+    dom.deviceNote.hidden = !onDevice;
+    dom.occasion.options[0].text = onDevice ? 'Pick for me (Bollywood style)' : 'Let the director decide';
+    const sub = dom.pick.querySelector('[data-pick-sub]');
+    if (sub) sub.textContent = onDevice ? 'mp3 · wav · m4a · flac · ogg · mp4 · mov · webm  ·  add as many as you like' : 'mp3 · wav · m4a · flac · ogg · mp4 · mov · webm  ·  add as many as you like; the director works through them one at a time (about 90 seconds each)';
+    dom.banner.hidden = onDevice ? !gated() : !!(b && b.ffmpeg && (b.claude || !needsAi) && (b.ytdlp || !needsYt));
+    if (onDevice && gated()) {
+      dom.banner.innerHTML = '';
+      dom.banner.append(el('span', { html: icon('user', 18) }), el('span', { class: 'grow', text: 'Create a free account to add your own songs. It takes a few seconds.' }),
+        el('button', { class: 'btn sm', text: 'Sign in', onclick: () => actions.account.signIn() }), el('button', { class: 'btn sm primary', text: 'Create account', onclick: () => needAccount() }));
+    } else if (!dom.banner.hidden) {
       dom.banner.innerHTML = '';
       const msg = b === undefined ? 'Checking the Musync backend…'
         : b === null ? 'The Musync backend is not running, so songs cannot be turned into shows yet. Start everything with npm run dev.'
@@ -411,7 +428,7 @@ export function initLibrary({ lib, onb, actions, getState }) {
   function itemRow(it) {
     const stages = onb.STAGES;
     const idx = onb.stageIndex(it.stage);
-    const pct = it.status === 'done' ? 100 : it.status === 'running' ? Math.max(8, (idx / (stages.length - 1)) * 100) : 0;
+    const pct = it.status === 'done' ? 100 : it.status === 'running' ? Math.max(8, it.pct != null ? it.pct * 100 : (idx / (stages.length - 1)) * 100) : 0;
     const label = {
       ready: 'Ready', uploading: 'Uploading…', queued: it.position > 1 ? `Waiting · ${it.position - 1} ahead` : 'Next in line', running: it.detail || 'Working…',
       done: it.upgrade ? 'Remade and ready to play (replaced the earlier show)' : 'Ready to play', dup: it.detail || 'Already in your library', error: it.error || 'Failed',
