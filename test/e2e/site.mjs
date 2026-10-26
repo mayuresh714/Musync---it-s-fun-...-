@@ -15,9 +15,9 @@ const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/M
 const PW = [process.env.MUSYNC_PW_DIR, `${process.env.HOME}/.vscode/extensions/danielsanmedium.dscodegpt-3.24.62/standalone/`, `${ROOT}/`].filter(Boolean);
 const chromium = (() => { for (const d of PW) for (const n of ['patchright', 'playwright-core', 'playwright']) { try { return createRequire(d.endsWith('/') ? d : d + '/')(n).chromium; } catch {} } throw new Error('no playwright-compatible driver; set MUSYNC_PW_DIR'); })();
 
-const UI = 5203, base = `http://localhost:${UI}`;
+const REMOTE = process.env.SITE_URL?.replace(/\/$/, ''), UI = 5203, base = REMOTE || `http://localhost:${UI}`;
 const tmp = mkdtempSync(join(tmpdir(), 'musync-site-'));
-const vite = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--config', 'sim/vite.config.js', '--strictPort'], { cwd: ROOT, env: { ...process.env, MUSYNC_PORT: '9', MUSYNC_UI_PORT: String(UI) }, stdio: 'ignore' });
+const vite = REMOTE ? { kill() {} } : spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--config', 'sim/vite.config.js', '--strictPort'], { cwd: ROOT, env: { ...process.env, MUSYNC_PORT: '9', MUSYNC_UI_PORT: String(UI) }, stdio: 'ignore' });
 process.on('exit', () => { vite.kill('SIGTERM'); try { rmSync(tmp, { recursive: true, force: true }); } catch {} });
 for (let i = 0; i < 80; i++) { try { if ((await fetch(`${base}/`)).ok) break; } catch {} await sleep(250); if (i === 79) { console.error('vite did not start'); process.exit(2); } }
 
