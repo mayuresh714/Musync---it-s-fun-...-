@@ -95,6 +95,7 @@ await page.waitForSelector('.aitem.ready');
 await page.click('.afoot .btn.primary');
 await page.waitForSelector('.aitem.done', { timeout: 60000 });
 ok(true, 'add: the song was turned into a show on this device');
+await page.waitForFunction(() => window.__musync.lib.entries.some((e) => e.local), null, { timeout: 15000 }).catch(() => {});
 const mine = await ev(() => window.__musync.lib.entries.filter((e) => e.local).map((e) => e.title));
 ok(mine.length === 1 && /My Test Song/.test(mine[0]), `library: the new show is listed (${mine})`);
 const stored = await ev(async () => { const s = await window.__musync.shows.list(window.__musync.auth.user().id); const full = await window.__musync.shows.get(s[0].id); return { n: s.length, hasAudio: JSON.stringify(full).includes('RIFF'), sha: !!full.audioSha, cues: full.wal.cues.length }; });
