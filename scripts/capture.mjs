@@ -7,7 +7,7 @@
 //   node scripts/capture.mjs --song "Illuminati" --rig concert --strip 40 --frames 8 --every 0.5   (a motion strip)
 //   node scripts/capture.mjs --song "Kamariya" --rig club --video 20 --from 35                      (a .mp4 clip, needs ffmpeg)
 //
-// options: --url http://localhost:5173/   --size 1280x720   --quality high|balanced|low   --haze 1.5   --sheet (also tile the stills)
+// options: --url http://localhost:5173/studio   --size 1280x720   --quality high|balanced|low   --haze 1.5   --sheet (also tile the stills)
 import { createRequire } from 'node:module';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
@@ -22,7 +22,7 @@ function driver() {
   throw new Error('No Playwright-compatible driver found. Set MUSYNC_PW_DIR to a folder whose node_modules has patchright or playwright-core.');
 }
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i < 0 ? d : (process.argv[i + 1]?.startsWith('--') || process.argv[i + 1] == null ? true : process.argv[i + 1]); };
-const url = arg('url', 'http://localhost:5173/'), song = arg('song', ''), rig = arg('rig', 'concert'), cam = arg('cam', 'director');
+const url = arg('url', 'http://localhost:5173/studio'), song = arg('song', ''), rig = arg('rig', 'concert'), cam = arg('cam', 'director');
 const [W, H] = String(arg('size', '1280x720')).split('x').map(Number);
 const at = String(arg('at', '')).split(',').filter(Boolean).map(Number);
 const out = resolve(String(arg('out', join(ROOT, '.musync', 'captures', `${Date.now()}`))));

@@ -5,7 +5,25 @@
   "buildCommand": "node scripts/build-demo.mjs && npm run build",
   "outputDirectory": "dist",
   "headers": [
-    { "source": "/songs/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] },
-    { "source": "/rigs/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }] }
-  ]
+    {
+      "source": "/songs/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/rigs/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }

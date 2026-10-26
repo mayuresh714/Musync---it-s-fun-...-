@@ -11,7 +11,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i < 0 ?
 const browser = await chromium.launch({ executablePath: CHROME, headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
 const page = await (await browser.newContext({ viewport: { width: 1440, height: 810 } })).newPage();
 await page.addInitScript((q) => { localStorage.setItem('musync.quality', q); localStorage.setItem('musync.welcomed', '1'); }, arg('quality', 'high'));
-await page.goto(arg('url', 'http://localhost:5173/'));
+await page.goto(arg('url', 'http://localhost:5173/studio'));
 await page.waitForFunction(() => window.__musync?.app?.wal && !document.querySelector('#loader:not(.done)'), null, { timeout: 90000 });
 const secs = +arg('seconds', 5);
 const rows = [];

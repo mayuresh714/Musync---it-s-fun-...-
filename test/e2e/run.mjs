@@ -21,7 +21,7 @@ function driver() {
   throw new Error('No Playwright-compatible driver found. Set MUSYNC_PW_DIR to a folder whose node_modules has patchright or playwright-core.');
 }
 
-const API = 8799, UI = 5199, URL_ = `http://localhost:${UI}/`;
+const API = 8799, UI = 5199, URL_ = `http://localhost:${UI}/studio`;
 const tmp = mkdtempSync(join(tmpdir(), 'musync-e2e-'));
 const data = join(tmp, 'jobs');
 const procs = [];

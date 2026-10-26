@@ -37,3 +37,6 @@ sim/public/songs/rang-de-lal*
 # generated library index (lists whatever songs you added locally); `npm run wal demo` creates it
 sim/public/songs/index.json
 sim/public/songs/*.wal.v1.json
+
+# the home-page hero loop is rendered from the synthetic demo track
+!sim/public/site/hero.mp4

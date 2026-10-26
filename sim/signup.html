@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07080c" />
+  <meta name="description" content="Create a free Musync account to add your own songs and keep your light shows." />
+  <title>Create account · Musync</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffb454' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 20.5 3.8 4.5M12 20.5V3M12 20.5l8.2-16'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Gujarati:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="./site/site.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div id="site-header"></div>
+  <main id="main" class="auth-wrap">
+    <div class="auth-card">
+      <h1 data-i18n="auth.up.title"></h1><p class="sub" data-i18n="auth.up.sub"></p>
+      <div class="form-err" id="err" role="alert" hidden></div>
+      <form id="form" novalidate>
+        <div class="field"><label for="name" data-i18n="auth.name"></label><input class="input" id="name" name="name" type="text" autocomplete="name" maxlength="60" required /></div>
+        <div class="field"><label for="email" data-i18n="auth.email"></label><input class="input" id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required /></div>
+        <div class="field"><label for="password" data-i18n="auth.password"></label>
+          <div class="pw"><input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" required /><button type="button" id="pwToggle" data-i18n="auth.show"></button></div>
+          <small data-i18n="auth.password.hint"></small></div>
+        <button class="btn primary" type="submit" id="submit" data-i18n="auth.up.btn"></button>
+      </form>
+      <p class="legal-line"><span data-i18n="auth.agree"></span> <a href="/legal#terms" data-i18n="foot.terms"></a> <span data-i18n="auth.and"></span> <a href="/legal#privacy" data-i18n="foot.privacy"></a>.</p>
+      <p class="auth-foot"><span data-i18n="auth.up.switch"></span> <a id="switch" href="/signin" data-i18n="auth.up.switchLink"></a></p>
+      <p class="auth-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span data-i18n="auth.device"></span></p>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script type="module" src="./site/auth-page.js"></script>
+</body>
+</html>
