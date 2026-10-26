@@ -1017,8 +1017,9 @@ if (idx.length) await loadSong(lib.lastId() || idx[0].id);
     else if (lib.byId.has(showId)) await loadSong(showId);
     else toast('That show is not saved in this browser.', { kind: 'warn' });
   }
+  const labId = deepLink.get('lab');
   if (deepLink.has('add')) { if (!auth.user() && (await director.check()) === null) accountActions.signUp('Create a free account to add your songs. They stay on this device; only the light plan is saved.'); else libUI.open('add'); }
-  if (rigId || showId || deepLink.has('add')) history.replaceState(null, '', location.pathname);
+  if (rigId || showId || labId || deepLink.has('add')) history.replaceState(null, '', location.pathname);
 }
 loader.set('Starting the show…', 0.95);
 requestAnimationFrame(loop);
@@ -1026,6 +1027,13 @@ actions.setCamera('director');
 await new Promise((r) => { const w = () => (app.frames > 6 ? r() : requestAnimationFrame(w)); w(); });
 loader.set('Ready', 1);
 loader.hide();
+if (deepLink.get('lab') && FIXTURES[deepLink.get('lab')]) { // /studio?lab=<fixture>: that light alone on stage, close up, every mode one tap away
+  const labId = deepLink.get('lab');
+  drawers.open('rig'); drawers.tab('test');
+  await benchStart(labId);
+  actions.setCamera('crane');
+  toast(`${FIXTURES[labId].name} is alone on stage. Pick a movement, a light style or a colour.`, { kind: 'info', ms: 6000 });
+}
 {
   const touch = matchMedia('(pointer: coarse)').matches;
   const hint = el('div', { class: 'hint glass' }, ...(touch
@@ -1034,7 +1042,7 @@ loader.hide();
   $('#ui').append(hint);
   setTimeout(() => hint.remove(), 12000);
   let seen = false; try { seen = localStorage.getItem('musync.welcomed') === '1'; } catch {}
-  if (!seen && !deepLink.has('show') && !deepLink.has('add') && !deepLink.has('rig')) {
+  if (!seen && !deepLink.has('show') && !deepLink.has('add') && !deepLink.has('rig') && !deepLink.has('lab')) {
     const done = () => { try { localStorage.setItem('musync.welcomed', '1'); } catch {} card.remove(); };
     const card = el('aside', { class: 'welcome glass', role: 'complementary', 'aria-label': 'Getting started' },
       el('div', {}, el('b', { text: 'Welcome to Musync' }), el('p', { class: 'muted', text: 'Browse the library, or add your own songs and let the director turn each one into a light show.' })),

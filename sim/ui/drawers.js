@@ -186,7 +186,7 @@ export function initDrawers({ actions, getState }) {
   const tourBtn = el('button', { class: 'btn', onclick: () => (tour ? stopTour() : startTour()) });
   testPane.append(el('div', { class: 'sect-head' }, el('span', { class: 'label', text: 'Fixture' })), modelSel,
     el('div', { class: 'sect-head' }, el('span', { class: 'label', text: 'Mode' })), aspectSeg, modeGrid, palRow, nowEl,
-    el('div', { class: 'row', style: { marginTop: '14px' } }, tourBtn, el('button', { class: 'btn ghost', text: 'Back to show', onclick: () => { api.tab('venue'); } })),
+    el('div', { class: 'row', style: { marginTop: '14px' } }, tourBtn, el('button', { class: 'btn ghost', text: 'Back to show', onclick: () => { api.tab('venue'); } }), el('a', { class: 'btn ghost', href: '/equipment', text: 'All lights' })),
     el('div', { class: 'note', style: { marginTop: '14px' }, html: `${icon('info', 16)}<span>One fixture on an empty stage, playing to the song's beat. Pick a mode to see how it behaves alone. Nothing is saved.</span>` }));
 
   function renderBench() {

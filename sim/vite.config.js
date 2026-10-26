@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
-const PAGES = ['index', 'studio', 'equipment', 'signin', 'signup', 'account', 'legal', '404'];
+const PAGES = ['index', 'studio', 'equipment', 'light', 'signin', 'signup', 'account', 'legal', '404'];
 
 // /studio -> studio.html, the same clean addresses the hosted site uses (vercel.json cleanUrls)
 const cleanUrls = () => {
