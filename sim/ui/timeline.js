@@ -10,7 +10,8 @@ export const KIND_COLORS = {
 const ACCENT = { drop: '#ff6b7a', hit: '#ffffff', silence: '#98a0b4', riser: '#ffcb6b', cue: '#6ab7ff' };
 
 export class Timeline {
-  constructor(canvas, tipEl, { onSeek, onHover } = {}) {
+  constructor(canvas, tipEl, { onSeek, onHover, slim = false } = {}) {
+    this.slim = slim; this.dragging = false;
     this.canvas = canvas;
     this.tip = tipEl;
     this.ctx = canvas.getContext('2d');
@@ -24,11 +25,10 @@ export class Timeline {
     canvas.tabIndex = 0;
     canvas.setAttribute('role', 'slider');
     canvas.setAttribute('aria-label', 'Song position');
-    let dragging = false;
-    const pos = (e) => { const r = canvas.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); };
-    canvas.addEventListener('pointerdown', (e) => { dragging = true; canvas.setPointerCapture(e.pointerId); this.seekFrac(pos(e)); });
-    canvas.addEventListener('pointermove', (e) => { this.setHover(pos(e)); if (dragging) this.seekFrac(pos(e)); });
-    canvas.addEventListener('pointerup', () => (dragging = false));
+        const pos = (e) => { const r = canvas.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); };
+    canvas.addEventListener('pointerdown', (e) => { this.dragging = true; this.draw(); canvas.setPointerCapture(e.pointerId); this.seekFrac(pos(e)); });
+    canvas.addEventListener('pointermove', (e) => { this.setHover(pos(e)); if (this.dragging) this.seekFrac(pos(e)); });
+    canvas.addEventListener('pointerup', () => { this.dragging = false; this.draw(); });
     canvas.addEventListener('pointerleave', () => this.setHover(null));
     canvas.addEventListener('keydown', (e) => {
       if (!this.wal) return;
@@ -117,7 +117,30 @@ export class Timeline {
     roundRect(g, 0.5, 0.5, W - 1, H - 1, 12); g.stroke();
   }
 
+  // The player's progress line: one thin bar along the top of the bar, played part in amber, sections as quiet segments.
+  drawSlim() {
+    const c = this.canvas, g = this.ctx, dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = c.clientWidth, H = c.clientHeight;
+    if (!W || !H) return;
+    if (c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+    const dur = this.wal?.meta.duration || 0;
+    const big = this.hover != null || this.dragging || document.activeElement === c;
+    const bh = big ? 6 : 3, y = Math.round((H - bh) / 2);
+    const px = dur ? (this.t / dur) * W : 0, hx = this.hover != null ? this.hover * W : 0;
+    const segs = dur ? this.wal.sections.map((s) => [(s.start / dur) * W, (s.end / dur) * W]) : [[0, W]];
+    for (const [x0, x1] of segs) {
+      const a = x0 + 1, b = Math.max(a + 2, x1 - 1);
+      g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(a, y, b - a, bh);
+      if (hx > a) { g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(a, y, Math.min(b, hx) - a, bh); }
+      if (px > a) { g.fillStyle = '#ffb454'; g.fillRect(a, y, Math.min(b, px) - a, bh); }
+    }
+    if (big && dur) { g.save(); g.shadowColor = 'rgba(255,180,84,0.8)'; g.shadowBlur = 8; g.fillStyle = '#ffd08a'; g.beginPath(); g.arc(Math.max(6, Math.min(W - 6, px)), H / 2, 6.5, 0, Math.PI * 2); g.fill(); g.restore(); }
+  }
+
   draw() {
+    if (this.slim) return this.drawSlim();
     const c = this.canvas, g = this.ctx;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const W = c.clientWidth, H = c.clientHeight;

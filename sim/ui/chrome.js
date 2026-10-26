@@ -66,23 +66,25 @@ export function initChrome({ actions, getState }) {
   const liveStrip = el('div', { class: 'live-strip' }, liveCanvas, liveTag);
   const tl = el('div', { class: 'tl' }, canvas, tip, liveStrip);
   const curTime = el('span', { class: 'tm mono', text: '0:00' }), durTime = el('span', { class: 'tm mono', text: '0:00' });
-  const progress = el('div', { class: 'dk-progress' }, curTime, tl, durTime);
+  const times = el('span', { class: 'times' }, curTime, el('span', { class: 'sep', text: '/' }), durTime);
+  const progress = el('div', { class: 'dk-progress' }, tl);
   const beat = el('span', { class: 'beat' });
   const secName = el('span', { id: 'secName', text: '—' }), secDot = el('i');
   const secSub = el('small', { id: 'secSub', text: '' });
   const now = el('div', { class: 'now' }, beat, el('div', { class: 'txt' }, el('b', {}, secDot, secName), secSub));
   const muteBtn = el('button', { class: 'btn icon ghost', 'aria-label': 'Mute', 'data-tip': 'Mute', 'data-kbd': 'M', html: icon('volume', 22), onclick: () => actions.toggleMute() });
   const vol = el('input', { class: 'slider', type: 'range', min: '0', max: '1', step: '0.01', value: '0.8', 'aria-label': 'Volume', oninput: (e) => actions.setVolume(+e.target.value) });
-  const dock = el('footer', { id: 'dock', class: 'glass' },
-    el('div', { class: 'dk-left' }, songBtn),
-    el('div', { class: 'dk-center' }, transport, progress),
-    el('div', { class: 'dk-right' }, now, el('div', { class: 'vol' }, muteBtn, vol)));
+  const dock = el('footer', { id: 'dock' }, progress,
+    el('div', { class: 'dk-row' },
+      el('div', { class: 'dk-left' }, songBtn),
+      el('div', { class: 'dk-center' }, transport, times),
+      el('div', { class: 'dk-right' }, now, el('div', { class: 'vol' }, muteBtn, vol))));
 
   const caption = el('div', { class: 'caption', 'aria-live': 'polite' });
   const perfEl = el('div', { class: 'perf mono glass', hidden: true });
   ui.append(topbar, dock, caption, perfEl);
 
-  const timeline = new Timeline(canvas, tip, { onSeek: (t) => actions.seek(t) });
+  const timeline = new Timeline(canvas, tip, { onSeek: (t) => actions.seek(t), slim: true });
 
   // ── behaviour ───────────────────────────────────────────────────────────
   function openSettings() {

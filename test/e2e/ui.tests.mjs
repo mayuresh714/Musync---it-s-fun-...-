@@ -835,9 +835,9 @@ for (const [label, W, H] of SIZES) {
     const tl = await rect(page, '.tb-left'), tr = await rect(page, '.tb-right'), dock = await rect(page, '#dock');
     assert(tr.l >= tl.r + 4, `top bar halves overlap (${Math.round(tl.r)} vs ${Math.round(tr.l)})`);
     assert(dock.t > tl.b + 40, 'the player leaves room for the scene');
-    assert(dock.h >= 100 && dock.h <= 140, `player height ${dock.h}`);
+    assert(dock.h >= 56 && dock.h <= 90, `player height ${dock.h}`);
     // the title and the play button are readable and the progress bar is a usable size
-    assert((await rect(page, '.play')).w >= 48, 'play button big enough');
+    assert((await rect(page, '.play')).w >= 40, 'play button big enough');
     assert((await rect(page, '#timelineCanvas')).w >= 160, 'progress bar wide enough');
     assert((await rect(page, '#dock .track b')).w >= 60, 'song title has room');
     // menus: camera and More

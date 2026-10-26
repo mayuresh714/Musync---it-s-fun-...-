@@ -522,15 +522,12 @@ body.live .transport .btn:not(.play) { opacity: 0.3; pointer-events: none; }
 .live-pill i { width: 9px; height: 9px; border-radius: 50%; background: #ff3b4e; box-shadow: 0 0 10px #ff3b4e; animation: livepulse 1.2s ease-in-out infinite; }
 .view-menu { max-height: min(72vh, 600px); overflow-y: auto; }
 
-#dock { position: absolute; left: var(--gap); right: var(--gap); bottom: var(--gap); margin: 0 auto; max-width: 1400px; height: var(--dock-h); display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 1.7fr) minmax(0, 1fr); align-items: center; gap: 24px; padding: 10px 22px 10px 14px; border-radius: 26px; }
-.dk-left, .dk-right, .dk-center { min-width: 0; }
 .track { display: flex; align-items: center; gap: 14px; width: 100%; height: 72px; padding: 0 10px 0 6px; border: 0; border-radius: 16px; background: transparent; text-align: left; transition: background var(--t-fast); }
 .track:hover, .track[aria-expanded="true"] { background: var(--raise-hi); }
 .track .art { width: 58px; height: 58px; border-radius: 13px; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, var(--accent), #ff6b7a); color: var(--accent-ink); box-shadow: 0 8px 22px -8px rgba(255, 140, 90, 0.7); }
 .track .meta { min-width: 0; flex: 1; line-height: 1.3; }
 .track b { display: block; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
 .track small { display: block; margin-top: 2px; font-size: 13.5px; color: var(--muted); }
-.dk-center { display: grid; gap: 8px; justify-items: center; }
 .transport { display: flex; align-items: center; gap: 14px; }
 .transport .btn.icon { width: 44px; height: 44px; border-radius: 50%; color: var(--text); }
 .transport .btn.icon.sm { width: 38px; height: 38px; color: var(--muted); }
@@ -544,12 +541,6 @@ body.live .transport .btn:not(.play) { opacity: 0.3; pointer-events: none; }
 .play[aria-pressed="true"] .i-play { opacity: 0; transform: scale(0.6) rotate(30deg); }
 .play[aria-pressed="true"] .i-pause { opacity: 1; transform: none; }
 .play[aria-pressed="false"] { animation: breathe 2.6s ease-in-out infinite; }
-.dk-progress { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 10px; width: 100%; }
-.tm { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.tm:first-child { text-align: right; }
-.tl { position: relative; height: 30px; min-width: 0; border-radius: 10px; }
-.tl canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer; border-radius: 10px; touch-action: none; }
-.dk-right { display: flex; align-items: center; justify-content: flex-end; gap: 22px; }
 .now { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .now .txt { line-height: 1.3; min-width: 0; }
 .now { max-width: 230px; }
@@ -562,9 +553,7 @@ body.live .transport .btn:not(.play) { opacity: 0.3; pointer-events: none; }
 .bench-now { margin-top: 14px; font-size: 13px; color: var(--muted); min-height: 18px; }
 
 /* medium screens: the section chip steps aside, then the volume */
-@media (max-width: 1180px) { #dock { grid-template-columns: minmax(0, 1fr) minmax(320px, 1.8fr) auto; gap: 16px; } .now { display: none; } }
 @media (max-width: 1000px) { .pill .btn.ai-btn .lbl, .pill .btn .lbl { display: none; } .pill .btn:not(.icon) { width: 42px; padding: 0; } .view-btn { width: auto !important; padding: 0 10px !important; } .view-btn .lbl { display: inline; } .vol .slider { display: none; } }
-@media (max-width: 860px) { #dock { grid-template-columns: minmax(0, 1fr) minmax(300px, 1.6fr); } .dk-right { display: none; } }
 /* phones and short landscape screens: two rows, big touch targets */
 @media (max-width: 720px), (max-height: 520px) {
   :root { --dock-h: 124px; --gap: 10px; --bar-h: 52px; }
@@ -572,12 +561,9 @@ body.live .transport .btn:not(.play) { opacity: 0.3; pointer-events: none; }
   .view-btn .lbl { display: none; }
   .view-btn { width: 42px !important; padding: 0 !important; }
   .view-btn svg:last-child { display: none; }
-  #dock { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "left tr" "prog prog"; row-gap: 6px; column-gap: 8px; padding: 10px 14px 12px 8px; border-radius: 22px; }
-  .dk-left { grid-area: left; } .dk-center { display: contents; } .transport { grid-area: tr; gap: 4px; } .dk-progress { grid-area: prog; padding-left: 6px; }
   .transport .btn.icon.sm { display: none; }
   .track { height: 60px; gap: 12px; } .track .art { width: 50px; height: 50px; border-radius: 12px; } .track b { font-size: 15px; }
   .play { width: 52px; height: 52px; }
-  .tl { height: 30px; }
   .drawer { left: var(--gap) !important; right: var(--gap) !important; width: auto; top: auto; bottom: calc(var(--dock-h) + var(--gap) * 2); max-height: 62vh; }
   .help-grid, .stylegrid { grid-template-columns: 1fr; }
 }
@@ -762,3 +748,47 @@ body.live .transport .btn:not(.play) { opacity: 0.3; pointer-events: none; }
 a.brand { color: inherit; text-decoration: none; border-radius: 10px; }
 a.brand:hover .mark { filter: drop-shadow(0 0 10px rgba(255, 180, 84, 0.8)); }
 .songask { top: auto; bottom: calc(var(--dock-h) + 24px); }
+
+/* ── player bar: one slim bar like a music app, progress as a thin line on top ─────────────────────────────── */
+:root { --dock-h: 76px; }
+#dock { position: absolute; left: 0; right: 0; bottom: 0; height: var(--dock-h); padding: 0 20px; background: linear-gradient(180deg, rgba(8, 9, 14, 0.9), rgba(6, 7, 10, 0.97)); backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); border-top: 1px solid var(--line); border-radius: 0; }
+.dk-progress { position: absolute; left: 0; right: 0; top: -9px; height: 18px; }
+.tl { position: absolute; inset: 0; height: 18px; border-radius: 0; }
+.tl canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: pointer; touch-action: none; border-radius: 0; }
+.tl canvas:focus-visible { outline: none; }
+.tl-tip { bottom: calc(100% + 4px); }
+.dk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 20px; height: 100%; }
+.dk-left, .dk-center, .dk-right { min-width: 0; }
+.dk-center { display: flex; align-items: center; gap: 18px; }
+.dk-right { display: flex; align-items: center; justify-content: flex-end; gap: 18px; }
+.track { height: 56px; max-width: 420px; }
+.track .art { width: 46px; height: 46px; border-radius: 8px; box-shadow: none; }
+.track b { font-size: 15px; } .track small { font-size: 13px; margin-top: 1px; }
+.transport { gap: 4px; }
+.transport .btn.icon { width: 40px; height: 40px; }
+.play { width: 44px; height: 44px; box-shadow: none; margin: 0 4px; }
+.play[aria-pressed="false"] { animation: none; }
+.times { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; font-family: var(--mono); }
+.times .sep { margin: 0 5px; opacity: 0.5; }
+.times .tm { font-size: inherit; }
+.now { max-width: 200px; }
+.vol .slider { width: 96px; }
+body.live .dk-progress { top: -40px; height: 40px; } body.live .tl { height: 40px; }
+@media (max-width: 1100px) { .now { display: none; } }
+@media (max-width: 900px) { .dk-row { grid-template-columns: minmax(0, 1fr) auto; } .dk-right { display: none; } .times { display: none; } }
+@media (max-width: 720px), (max-height: 520px) {
+  :root { --dock-h: 68px; --gap: 10px; --bar-h: 52px; }
+  #dock { padding: 0 8px 0 10px; padding-bottom: env(safe-area-inset-bottom, 0); }
+  .dk-row { gap: 6px; }
+  .track { height: 52px; gap: 12px; } .track .art { width: 44px; height: 44px; } .track b { font-size: 15px; }
+  .transport .btn.icon.sm { display: none; }
+  .play { width: 46px; height: 46px; }
+}
+@media (max-height: 520px) { :root { --dock-h: 60px; } }
+@media (max-width: 380px) { .transport .btn.icon { width: 38px; height: 38px; } .play { width: 42px; height: 42px; } .track .art { width: 40px; height: 40px; } }
+
+/* ── top bar and menus: the same quiet surfaces as the website ────────────────────────────────────────────── */
+.pill { border-radius: 14px; border: 1px solid var(--line); background: rgba(9, 10, 15, 0.66); backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3); box-shadow: none; }
+.brand { font-family: "Bricolage Grotesque", var(--font); font-size: 19px; }
+.modal, .popover, .drawer { border-radius: 18px; }
+h2, .modal h2, .drawer > header h2, .sheet-head h2 { font-family: "Bricolage Grotesque", var(--font); letter-spacing: -0.02em; }
